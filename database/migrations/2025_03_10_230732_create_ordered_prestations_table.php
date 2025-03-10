@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ordered_prestations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->nullable()->constrained('clients')->nullOnDelete();
-            $table->foreignId('craftsman_id')->constrained('craftsmen')->nullOnDelete();
+            $table->foreignId('craftsman_id')->nullable()->constrained('craftsmen')->nullOnDelete();
             $table->decimal('price', 10, 2);
             $table->longText('description')->nullable();
             $table->date('date');
