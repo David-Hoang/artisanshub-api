@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('job_id')->constrained('craftsman_jobs')->nullOnDelete();
             $table->decimal('price', 10,2)->nullable();
-            $table->boolean('avalaible')->default(false);
+            $table->boolean('available')->default(false);
             $table->longText('description')->nullable();
             $table->timestamps();
         });
