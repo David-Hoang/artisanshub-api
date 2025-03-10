@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('craftsmen', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('job_id')->constrained('jobs')->nullOnDelete();
+            $table->foreignId('job_id')->constrained('craftsman_jobs')->nullOnDelete();
             $table->decimal('price', 10,2)->nullable();
-            $table->boolean('avalaible')->default(false);
+            $table->boolean('available')->default(false);
             $table->longText('description')->nullable();
             $table->timestamps();
         });
