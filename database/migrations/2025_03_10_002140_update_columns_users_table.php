@@ -12,16 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->string('username')->nullable();
-            $table->string('phone');
+            $table->string('last_name')->after('id');
+            $table->string('first_name')->after('last_name');
+            $table->string('username')->nullable()->after('email_verified_at');
             $table->enum('role', [
                 'admin',
                 'craftsman',
                 'client'
-            ]);
-            $table->string('city');
+            ])->after('username');
+            $table->string('phone')->after('password');
+            $table->string('city')->after('phone');
             $table->enum('region', [
                 "Auvergne-Rhône-Alpes",
                 "Bourgogne-Franche-Comté",
@@ -41,8 +41,8 @@ return new class extends Migration
                 "Martinique",
                 "Mayotte",
                 "La Réunion"
-            ]);
-            $table->string('zipcode');
+            ])->after('city');
+            $table->string('zipcode')->after('region');
         });
     }
 
