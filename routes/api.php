@@ -13,8 +13,12 @@ Route::get('/hello', function() {
     return 'Hello world';
 });
 
-Route::get('/all-users', [AuthController::class, 'allUsers']);
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+Route::middleware('auth:sanctum')->group(function() {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/all-users', [AuthController::class, 'allUsers']);
+    
+});
