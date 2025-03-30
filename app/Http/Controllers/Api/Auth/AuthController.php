@@ -9,41 +9,52 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function register(Request $req) {
 
-        $inputsValidated = $req->validate([
-            "first_name" => "required|string|max:255",
-            "last_name" => "required|string|max:255",
-            "email" => "required|email|unique:users,email",
-            "username" => "nullable|string|max:255",
-            "role" => ["required", Rule::in(Role::cases())],
-            "password" => "required|string",
-            "phone" => "required|string|max:15",
-            "city" => "required|string|max:255",
-            "region" => ["required", Rule::in(Region::cases())],
-            "zipcode" => "required|string|max:5"
-        ], $this->messages());
-
         try {
+            $inputsValidated = $req->validate([
+                "first_name" => "required|string|max:255",
+                "last_name" => "required|string|max:255",
+                "email" => "required|email|unique:users,email",
+                "username" => "nullable|string|max:255",
+                "role" => ["required", Rule::in(Role::cases())],
+                "password" => "required|string",
+                "phone" => "required|string|max:15",
+                "city" => "required|string|max:255",
+                "region" => ["required", Rule::in(Region::cases())],
+                "zipcode" => "required|string|max:5"
+            ], $this->messages());
+            
             $newUser = User::create($inputsValidated);
-            if (!$newUser) {
+
+            if (!$newUser) 
                 return response()->json([
-                    "message" => "L'utilisateur n'a pas pu être créé."
+                    "message" => "Une erreur est survenue lors de la création de l'utilisateur."
                 ], 500);
-            }else{
-                // Génération du token
-                $userToken = $newUser->createToken($req->last_name);
-                
-                return response()->json([
-                    "message" => "Utilisateur créé avec succès !",
-                    "utilisateur" => $newUser,
-                    "token" => $userToken->plainTextToken,
-                ], 201);
-            }
-        } catch (\Throwable $th) {
+
+            // Generate token
+            $userToken = $newUser->createToken($newUser->id);
+            
+            return response()->json([
+                "message" => "Utilisateur créé avec succès !",
+                "utilisateur" => $newUser,
+                "token" => $userToken->plainTextToken,
+            ], 201);
+        } catch (ValidationException $e) {
+
+            // Throw validate error
+            return response()->json([
+                "errors" => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+
+            //Throw internal server error
             return response()->json([
                 "message" => "Une erreur s'est produite lors de l'inscription."
             ], 500);
@@ -53,42 +64,68 @@ class AuthController extends Controller
 
     public function login(Request $req) {
         
-        $req->validate([
-            "email" => "required|email|exists:users,email",
-            "password" => "required"
-        ], $this->messages());
-
         try {
+            $req->validate([
+                "email" => "required|email",
+                "password" => "required"
+            ], $this->messages());
             
-
             $user = User::where('email', $req->email)->first();
 
-            if(!$user || !Hash::check($req->password, $user->password)){
+            if (!$user) 
                 return response()->json([
-                    "message" => "L'adresse email ou le mot n'est pas valide."
+                    "message" => "Les informations de connexion ne sont pas valides."
                 ], 401);
-            }else{
-                $userToken = $user->createToken($user->last_name);
-    
+
+            if(!Hash::check($req->password, $user->password))
                 return response()->json([
-                    "message" => "Connexion réussie !",
-                    "utilisateur" => $user,
-                    "token" => $userToken->plainTextToken,
-                ], 201);
-            }
-        } catch (\Throwable $th) {
+                    "message" => "Les informations de connexion ne sont pas valides."
+                ], 401);
+            
+            // Génération du token
+            $userToken = $user->createToken($user->id);
+    
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la tentative de connexion."
+                "message" => "Connexion réussie !",
+                "user" => $user,
+                "token" => $userToken->plainTextToken
+            ], 200);
+
+        } catch (ValidationException $e) {
+
+            return response()->json([
+                "errors" => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la tentative de connexion.",
             ], 500);
         }
     }
     
     public function logout(Request $req) {
-        
-        $req->user()->tokens()->delete();
+        try {
+            $user = $req->user();
+            if(!$user) return response()->json(["message" => "Vous n'êtes pas authentifié."], 401);
 
-        return response()->json(["message" => "Vous vous êtes déconnecté !"], 200);
+            $user->tokens()->delete();
+            return response()->json(["message" => "Déconnexion réussie."], 200);
 
+        } catch (\Exception $e) {
+            return response()->json(["message" => "Une erreur s'est produite lors de la tentiative de déconnexion."], 500);
+        }
+    }
+
+    public function checkAuth (Request $req) {
+        try {
+            $user = $req->user();
+
+            if($user) return response()->json($user, 200);
+        } catch (\Exception $e) {
+            return response()->json(["message" => "Une erreur s'est produite lors de la tentiative de déconnexion."], 500);
+        }
     }
 
     public function allUsers () {
@@ -99,9 +136,10 @@ class AuthController extends Controller
             }else{
                 return response()->json(User::all(), 200);
             }
-        } 
-        catch (\Throwable $th) {
-            return response()->json(['message' => 'Un problème est survenu sur le serveur'], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de l'inscription."
+            ], 500);
         }
     }
 

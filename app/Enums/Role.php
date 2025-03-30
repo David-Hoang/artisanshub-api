@@ -11,7 +11,7 @@ enum Role: string
     public function displayName() {
         return match ($this) {
             self :: ADMIN => 'Administrateur',
-            self :: CLIENT => 'Administrateur',
+            self :: CLIENT => 'Client',
             self :: CRAFTSMAN => 'Artisan',
         };
     }
