@@ -9,8 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\AuthenticationException;
-use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -25,10 +23,10 @@ class AuthController extends Controller
                 "username" => "nullable|string|max:255",
                 "role" => ["required", Rule::in(Role::cases())],
                 "password" => "required|string",
-                "phone" => "required|string|max:15",
+                "phone" => "required|regex:/^(0\d{9})$/",
                 "city" => "required|string|max:255",
                 "region" => ["required", Rule::in(Region::cases())],
-                "zipcode" => "required|string|max:5"
+                "zipcode" => "required|regex:/^\d{5}$/"
             ], $this->messages());
             
             $newUser = User::create($inputsValidated);
@@ -168,7 +166,7 @@ class AuthController extends Controller
             "password.string" => "Le mot de passe doit être une chaîne de caractère.",
 
             "phone.required" => "Veuillez renseigner votre numéro de téléphone.",
-            "phone.max" => "Le numéro de téléphone ne dois pas dépasser 15 chiffres.",
+            "phone.regex" => "Le numéro de téléphone ne doit contenir 10 chiffres.",
 
             "city.required" => "Veuillez renseignere votre nom de ville.",
             "city.string" => "Votre ville renseigner doit être une chaîne de caractère.",
@@ -178,8 +176,7 @@ class AuthController extends Controller
             "region.in" => "Veuillez sélectionner une région valide.",
 
             "zipcode.required" => "Veuillez renseigner votre code postal.",
-            "zipcode.string" => "Le code postal doit être une chaîne de caractère.",
-            "zipcode.max" => "Le code postal ne doit pas dépasser 5 caractères.",
+            "zipcode.regex" => "Le code postal doit être composé de 5 chiffres.",
 
             // Login
             "email.exists" => "Oops ! Nous n'avons trouvé aucun compte associé à cette adresse email."
