@@ -12,7 +12,7 @@ class CraftsmanJobController extends Controller
     {
         try {
             return response()->json([
-                "jobs" => CraftsmanJob::all()->pluck('name')
+                "jobs" => CraftsmanJob::all()
             ]);
         } catch (\Exception $e) {
 
