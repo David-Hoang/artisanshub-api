@@ -10,6 +10,17 @@ class CraftsmanJobController extends Controller
 {
     public function jobs()
     {
-        return CraftsmanJob::all()->pluck('name');
+        try {
+            return response()->json([
+                "jobs" => CraftsmanJob::all()->pluck('name')
+            ]);
+        } catch (\Exception $e) {
+
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des métiers.",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
 }
