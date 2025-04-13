@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\CraftsManJob\CraftsmanJobController;
 use App\Http\Controllers\Api\Enum\EnumController;
 
 
@@ -19,6 +20,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/enums/regions', [EnumController::class, 'regions']);
+
+Route::get('/craftsman/jobs', [CraftsmanJobController::class, 'jobs']);
 
 Route::middleware('auth:sanctum')->group(function() {
     Route::post('/auth', [AuthController::class, 'checkAuth']);
