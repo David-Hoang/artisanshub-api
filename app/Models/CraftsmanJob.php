@@ -11,7 +11,10 @@ class CraftsmanJob extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name'
+        'name',
+        'img_path',
+        'img_title',
+        'description'
     ];
 
     /**

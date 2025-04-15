@@ -41,7 +41,6 @@ class AuthController extends Controller
             
             return response()->json([
                 "message" => "Utilisateur créé avec succès !",
-                "utilisateur" => $newUser,
                 "token" => $userToken->plainTextToken,
             ], 201);
         } catch (ValidationException $e) {
