@@ -48,11 +48,12 @@ class CraftsmanJobController extends Controller
                 "image" => "nullable|image|max:3072|mimes:jpg,png,jpeg,webp",
                 "description" => "nullable|string|max:5000"
             ], $this->messages());
-
+            
             
             if($req->hasFile('image')) {
                 $path = $req->image->store('/img/jobs', 'public');
             }
+
             $newJobCat = CraftsmanJob::create([
                 "name" => $req->name,
                 "img_title" => $req->img_title ?? null,
