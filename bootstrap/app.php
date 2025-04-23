@@ -14,7 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         // Force laravel api to always render a json response
-        // $middleware->append(\App\Http\Middleware\ReturnJsonResponseMiddleware::class);
+        $middleware->append(\App\Http\Middleware\ReturnJsonResponseMiddleware::class);
+
+        // $middleware->append(\App\Http\Middleware\RoleMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Force laravel api to always render a json response
