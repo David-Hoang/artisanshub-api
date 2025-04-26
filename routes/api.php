@@ -7,7 +7,7 @@ use App\Http\Middleware\IsCraftsmanMiddleware;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Enum\EnumController;
 use App\Http\Controllers\Api\CraftsmanJobController;
-use App\Http\Controllers\Api\CraftsManJob\CraftsmanController;
+use App\Http\Controllers\Api\CraftsmanController;
 
 
 
@@ -39,14 +39,9 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/all-users', [AuthController::class, 'allUsers']);
 
-    Route::get('/hi', function() {
-    dd('aaa');
-    // return Role::CRAFTSMAN;
-    });
-
-    Route::middleware(IsCraftsmanMiddleware::class.':'.Role::CRAFTSMAN->value)->group(function() {
+        Route::middleware('isCraftsman')->group(function() {
         //Craftsman infos
-        Route::get('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
+        Route::post('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
     });
 
 });

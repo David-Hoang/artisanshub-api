@@ -29,6 +29,6 @@ class CraftsmanJob extends Model
 
     public function Crafsman()
     {
-        return $this->hasMany(CraftsMan::class);
+        return $this->hasMany(CraftsMan::class, 'craftsman_job_id');
     }
 }
