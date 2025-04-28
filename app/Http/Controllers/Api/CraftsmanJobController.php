@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class CraftsmanJobController extends Controller
 {
+    // Show all jobs
     public function jobs()
     {
         try {
@@ -25,6 +26,7 @@ class CraftsmanJobController extends Controller
         }
     }
 
+    // Show single job by id
     public function singleJob($id) 
     {
         try {
@@ -39,6 +41,7 @@ class CraftsmanJobController extends Controller
         }
     }
 
+    // Add single job
     public function addJob(Request $req) 
     {
         try {

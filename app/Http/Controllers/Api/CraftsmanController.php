@@ -9,8 +9,9 @@ use Illuminate\Validation\ValidationException;
 
 class CraftsmanController extends Controller
 {
+    //Add or update craftsman infos
     public function craftsmanInfos(Request $req) {
-        
+        dd($req);
         try {
             $user = Auth::user();
             $req->validate([
