@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class CraftsmanGallery extends Model
 {
+
+    protected $table = 'craftsman_gallery'; //Telling laravel to use the table craftsman_gallery
+
     protected $fillable = [
         'craftsman_id',
         'img_path',

@@ -58,7 +58,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function jobInfos() {
+    public function craftsman() {
         return $this->hasOne(Craftsman::class);
     }
 }
