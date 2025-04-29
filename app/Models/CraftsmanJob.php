@@ -27,8 +27,8 @@ class CraftsmanJob extends Model
         'updated_at',
     ];
 
-    public function Crafsman()
+    public function craftsman()
     {
-        return $this->hasMany(CraftsMan::class);
+        return $this->hasMany(Craftsman::class, 'craftsman_job_id');
     }
 }

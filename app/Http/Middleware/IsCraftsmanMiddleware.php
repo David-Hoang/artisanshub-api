@@ -14,10 +14,10 @@ class IsCraftsmanMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, $role): Response
+    public function handle(Request $request, Closure $next): Response
     {
         try {
-            if(Auth::user() && Auth::user()->role->value !== $role){
+            if(!Auth::user() && Auth::user()->role->value !== 'craftsman'){
                 return response()->json([
                     'message' => "Accès refusé, vous n'avez pas le rôle nécessaire.",
                 ], 403);

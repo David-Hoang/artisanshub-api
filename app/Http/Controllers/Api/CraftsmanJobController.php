@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class CraftsmanJobController extends Controller
 {
+    // Show all jobs
     public function jobs()
     {
         try {
@@ -25,6 +26,7 @@ class CraftsmanJobController extends Controller
         }
     }
 
+    // Show single job by id
     public function singleJob($id) 
     {
         try {
@@ -39,6 +41,7 @@ class CraftsmanJobController extends Controller
         }
     }
 
+    // Add single job
     public function addJob(Request $req) 
     {
         try {
@@ -49,11 +52,6 @@ class CraftsmanJobController extends Controller
                 "description" => "nullable|string|max:5000"
             ], $this->messages());
             
-            
-            if($req->hasFile('image')) {
-                $path = $req->image->store('/img/jobs', 'public');
-            }
-
             $newJobCat = CraftsmanJob::create([
                 "name" => $req->name,
                 "img_title" => $req->img_title ?? null,
@@ -61,6 +59,10 @@ class CraftsmanJobController extends Controller
                 "description" => $req->description ?? null,
             ]);
             
+            if($req->hasFile('image')) {
+                $path = $req->image->store('/img/jobs', 'public');
+            }
+
             if (!$newJobCat) {
                 return response()->json([
                     "message" => "Une erreur est survenue lors de la création d'un nouveau métier."

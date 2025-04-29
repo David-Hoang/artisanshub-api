@@ -34,9 +34,18 @@ class Craftsman extends Model
         ];
     }
 
-
-    public function craftsmanJob()
+    public function user()
     {
-        return $this->belongsTo(CraftsmanJob::class);
+        return $this->belongsTo(User::class);
+    }
+
+    public function job()
+    {
+        return $this->belongsTo(CraftsmanJob::class, 'craftsman_job_id');
+    }
+
+    public function gallery()
+    {
+        return $this->hasMany(CraftsmanGallery::class);
     }
 }

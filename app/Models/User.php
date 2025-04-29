@@ -57,4 +57,8 @@ class User extends Authenticatable
             'region' => Region::class
         ];
     }
+
+    public function craftsman() {
+        return $this->hasOne(Craftsman::class);
+    }
 }
