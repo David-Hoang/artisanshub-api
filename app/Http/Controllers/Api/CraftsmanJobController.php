@@ -55,18 +55,14 @@ class CraftsmanJobController extends Controller
             $newJobCat = CraftsmanJob::create([
                 "name" => $req->name,
                 "img_title" => $req->img_title ?? null,
-                "img_path" => $path ?? null,
+                "img_path" => null,
                 "description" => $req->description ?? null,
             ]);
             
             if($req->hasFile('image')) {
                 $path = $req->image->store('/img/jobs', 'public');
-            }
-
-            if (!$newJobCat) {
-                return response()->json([
-                    "message" => "Une erreur est survenue lors de la création d'un nouveau métier."
-                ], 500);
+                $newJobCat->img_path = $path;
+                $newJobCat->save();
             }
 
             return response()->json([

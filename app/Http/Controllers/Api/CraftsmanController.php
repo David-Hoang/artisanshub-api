@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Models\Craftsman;
+use Illuminate\Http\Request;
 use App\Models\CraftsmanGallery;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -75,6 +75,10 @@ class CraftsmanController extends Controller
     
             'craftsman_job_id.required' => 'Le métier de l’artisan est requis.',
             'craftsman_job_id.exists' => 'Le métier sélectionné est invalide.',
+
+            'gallery.*.image' => 'Chaque fichier de la galerie doit être une image.',
+            'gallery.*.max' => 'Chaque image de la galerie ne doit pas dépasser 3 Mo.',
+            'gallery.*.mimes' => 'Chaque image doit être au format JPG, PNG, JPEG ou WEBP.',
         ];
     }
 }
