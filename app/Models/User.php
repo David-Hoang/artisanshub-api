@@ -61,4 +61,9 @@ class User extends Authenticatable
     public function craftsman() {
         return $this->hasOne(Craftsman::class);
     }
+
+    public function profileImg()
+    {
+        return $this->hasOne(UserProfilePicture::class);
+    }
 }

@@ -8,6 +8,7 @@ use App\Enums\Region;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
+use App\Models\UserProfilePicture;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -29,7 +30,15 @@ class AuthController extends Controller
                 "zipcode" => "required|regex:/^\d{5}$/"
             ], $this->messages());
             
+            // Create new user
             $newUser = User::create($inputsValidated);
+
+            // Init profile picture to null
+            UserProfilePicture::create([
+                "user_id" => $newUser->id,
+                "img_path" => null,
+                "img_title" => null
+            ]);
 
             if (!$newUser) 
                 return response()->json([

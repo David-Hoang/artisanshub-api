@@ -8,8 +8,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\CraftsmanController;
 use App\Http\Controllers\Api\Enum\EnumController;
 use App\Http\Controllers\Api\CraftsmanJobController;
-
-
+use App\Http\Controllers\Api\UserProfilePictureController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -31,13 +30,14 @@ Route::get('/jobs', [CraftsmanJobController::class, 'jobs']);
 Route::get('/jobs/{id}', [CraftsmanJobController::class, 'singleJob']);
 Route::post('/jobs/new-job', [CraftsmanJobController::class, 'addJob']);
 
-
-
 Route::middleware('auth:sanctum')->group(function() {
 
     Route::post('/auth', [AuthController::class, 'checkAuth']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/all-users', [AuthController::class, 'allUsers']);
+
+    //Upload profile picture
+    Route::post('/user-profile-picture', [UserProfilePictureController::class, 'profilePicture']);
 
         Route::middleware('isCraftsman')->group(function() {
             //Craftsman infos
