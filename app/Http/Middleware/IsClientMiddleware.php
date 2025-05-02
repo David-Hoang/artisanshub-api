@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class IsCraftsmanMiddleware
+class IsClientMiddleware
 {
     /**
      * Handle an incoming request.
@@ -18,11 +18,12 @@ class IsCraftsmanMiddleware
     {
         try {
             $user = Auth::user();
-            if(!$user || $user->role->value !== 'craftsman'){
+            if(!$user || $user->role->value !== 'client'){
                 return response()->json([
                     'message' => "Accès refusé, vous n'avez pas le rôle nécessaire.",
                 ], 403);
             }
+            
             return $next($request);
 
         } catch (\Throwable $th) {

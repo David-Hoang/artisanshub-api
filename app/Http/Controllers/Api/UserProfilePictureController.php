@@ -31,11 +31,11 @@ class UserProfilePictureController extends Controller
                 [
                     "img_title" => $req->img_title ?? $oldTitle,
                     "img_path" => $oldPath,
-                ]);
-            
-            if($req->hasFile('profile_picture')) {
+                ]
+            );
 
-                if($oldPath){
+            if ($req->hasFile('profile_picture')) {
+                if ($oldPath) {
                     Storage::disk('public')->delete($oldPath);
                 }
 
@@ -44,10 +44,12 @@ class UserProfilePictureController extends Controller
                 $newProfilePicture->save();
             }
 
-            return response()->json([
-                "message" => "Photo de profil enregistrée avec succès ! ",
-            ], 201);
-
+            return response()->json(
+                [
+                    "message" => "Photo de profil enregistrée avec succès ! ",
+                ],
+                $newProfilePicture->wasRecentlyCreated ? 201 : 200 //throw 201 code if new picture else 200
+            );
         } catch (ValidationException $e) {
 
             return response()->json([
@@ -63,7 +65,8 @@ class UserProfilePictureController extends Controller
         }
     }
 
-    protected function messages() : array {
+    protected function messages(): array
+    {
         return [
             "profile_picture.image" => "Le fichier doit être une image.",
             "profile_picture.max" => "L'image ne peut pas dépasser 3 Mo.",
