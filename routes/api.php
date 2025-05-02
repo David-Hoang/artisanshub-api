@@ -3,8 +3,8 @@
 use App\Enums\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\IsCraftsmanMiddleware;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\CraftsmanController;
 use App\Http\Controllers\Api\Enum\EnumController;
 use App\Http\Controllers\Api\CraftsmanJobController;
@@ -36,12 +36,17 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/all-users', [AuthController::class, 'allUsers']);
 
-    //Upload profile picture
+    //Upload user profile picture
     Route::post('/user-profile-picture', [UserProfilePictureController::class, 'profilePicture']);
 
         Route::middleware('isCraftsman')->group(function() {
             //Craftsman infos
             Route::post('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
+        });
+
+        Route::middleware('isClient')->group(function() {
+            //Client infos
+            Route::post('/client-infos', [ClientController::class, 'clientInfos']);
         });
 
 });

@@ -12,7 +12,8 @@ use Illuminate\Validation\ValidationException;
 class CraftsmanController extends Controller
 {
     //Add or update craftsman infos
-    public function craftsmanInfos(Request $req) {
+    public function craftsmanInfos(Request $req)
+    {
         try {
             $user = Auth::user();
 
@@ -22,22 +23,23 @@ class CraftsmanController extends Controller
                 "available" => "required|boolean",
                 "craftsman_job_id" => "required|exists:craftsman_jobs,id",
                 "gallery.*" => "nullable|image|max:3072|mimes:jpg,png,jpeg,webp"
-            ],$this->messages());
+            ], $this->messages());
 
             // Insert data into craftsman info
             $craftsman = Craftsman::updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'price' => $req->price,
-                'description' => $req->description,
-                'available' => $req->available,
-                'craftsman_job_id' => $req->craftsman_job_id,
-            ]);
+                ['user_id' => $user->id],
+                [
+                    'price' => $req->price,
+                    'description' => $req->description,
+                    'available' => $req->available,
+                    'craftsman_job_id' => $req->craftsman_job_id,
+                ]
+            );
 
             //Create folder for craftsman's gallery and insert new records for each image
-            if($req->hasFile('gallery')) {
+            if ($req->hasFile('gallery')) {
                 foreach ($req->gallery as $image) {
-                    $path = $image->store('/img/gallery/'.$craftsman->id, 'public');
+                    $path = $image->store('/img/gallery/' . $craftsman->id, 'public');
                     CraftsmanGallery::create([
                         "craftsman_id" => $craftsman->id,
                         "img_path" => $path,
@@ -45,9 +47,12 @@ class CraftsmanController extends Controller
                 }
             }
 
-            return response()->json([
-                "message" => "Les informations ont bien été sauvegardés.",
-            ], 201);
+            return response()->json(
+                [
+                    "message" => "Les informations ont bien été sauvegardés.",
+                ],
+                $craftsman->wasRecentlyCreated ? 201 : 200
+            );
         } catch (ValidationException $e) {
 
             return response()->json([
@@ -62,17 +67,18 @@ class CraftsmanController extends Controller
         }
     }
 
-    protected function messages(): array {
+    protected function messages(): array
+    {
         return [
             'price.numeric' => 'Le prix doit être un nombre.',
             'price.between' => 'Le prix doit être compris entre 0 et 99 999 999.99.',
-    
+
             'description.string' => 'La description doit être une chaîne de caractères.',
             'description.max' => 'La description ne doit pas dépasser 65 535 caractères.',
-    
+
             'available.required' => 'La disponibilité est requise.',
             'available.boolean' => 'Le champ disponibilité doit être vrai ou faux.',
-    
+
             'craftsman_job_id.required' => 'Le métier de l’artisan est requis.',
             'craftsman_job_id.exists' => 'Le métier sélectionné est invalide.',
 

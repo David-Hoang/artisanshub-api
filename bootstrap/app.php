@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'isCraftsman' => \App\Http\Middleware\IsCraftsmanMiddleware::class,
+            'isClient' => \App\Http\Middleware\IsClientMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
