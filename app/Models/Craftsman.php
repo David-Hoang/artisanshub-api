@@ -3,12 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Craftsman extends Model
 {
-    use HasFactory;
-
     /**
      * The attributes that are mass assignable.
      *
@@ -34,17 +32,17 @@ class Craftsman extends Model
         ];
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function job()
+    public function job(): BelongsTo
     {
         return $this->belongsTo(CraftsmanJob::class, 'craftsman_job_id');
     }
 
-    public function gallery()
+    public function gallery(): HasMany
     {
         return $this->hasMany(CraftsmanGallery::class);
     }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CraftsmanGallery extends Model
 {
@@ -15,7 +16,7 @@ class CraftsmanGallery extends Model
         'img_title',
     ];
 
-    public function craftsman()
+    public function craftsman(): BelongsTo
     {
         return $this->belongsTo(Craftsman::class, 'craftsman_id');
     }

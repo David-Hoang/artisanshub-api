@@ -3,10 +3,11 @@
 use App\Enums\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\CraftsmanController;
 use App\Http\Controllers\Api\Enum\EnumController;
+use App\Http\Controllers\Api\PrestationController;
 use App\Http\Controllers\Api\CraftsmanJobController;
 use App\Http\Controllers\Api\UserProfilePictureController;
 
@@ -39,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function() {
     //Upload user profile picture
     Route::post('/user-profile-picture', [UserProfilePictureController::class, 'profilePicture']);
 
+
         Route::middleware('isCraftsman')->group(function() {
             //Craftsman infos
             Route::post('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
@@ -47,6 +49,8 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::middleware('isClient')->group(function() {
             //Client infos
             Route::post('/client-infos', [ClientController::class, 'clientInfos']);
+            Route::post('/new-prestation/{craftsmanId}', [PrestationController::class, 'newPrestation']);
+            Route::put('/prestation/edit/{prestationId}', [PrestationController::class, 'clientEditPrestation']);
         });
 
 });
