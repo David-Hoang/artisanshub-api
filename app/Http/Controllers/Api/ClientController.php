@@ -16,7 +16,7 @@ class ClientController extends Controller
             $user = Auth::user();
 
             $req->validate([
-                "street_number" => "required|numeric|min:0",
+                "street_number" => "required|integer|min:0",
                 "street_name" => "required|string|max:255",
                 "complement" => "nullable|string|max:255",
             ], $this->messages());
@@ -45,8 +45,7 @@ class ClientController extends Controller
 
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de l'enregistrement des informations.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de l'enregistrement des informations."
             ], 500);
         }
     }

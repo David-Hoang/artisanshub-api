@@ -5,10 +5,11 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Role;
 use App\Enums\Region;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -21,16 +22,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-                    'first_name',
-                    'last_name',
-                    'email',
-                    'username',
-                    'role',
-                    'password',
-                    'phone',
-                    'city',
-                    'region',
-                    'zipcode'
+        'first_name',
+        'last_name',
+        'email',
+        'username',
+        'role',
+        'password',
+        'phone',
+        'city',
+        'region',
+        'zipcode'
     ];
 
     /**
@@ -58,15 +59,17 @@ class User extends Authenticatable
         ];
     }
 
-    public function craftsman() {
+    public function craftsman(): HasOne
+    {
         return $this->hasOne(Craftsman::class);
     }
 
-    public function client() {
+    public function client(): HasOne
+    {
         return $this->hasOne(Client::class);
     }
 
-    public function profileImg()
+    public function profileImg(): HasOne
     {
         return $this->hasOne(UserProfilePicture::class);
     }

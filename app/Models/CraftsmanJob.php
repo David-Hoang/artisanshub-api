@@ -3,13 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class CraftsmanJob extends Model
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory;
-
     protected $fillable = [
         'name',
         'img_path',
@@ -27,7 +23,7 @@ class CraftsmanJob extends Model
         'updated_at',
     ];
 
-    public function craftsman()
+    public function craftsman(): HasMany
     {
         return $this->hasMany(Craftsman::class, 'craftsman_job_id');
     }

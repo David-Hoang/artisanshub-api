@@ -3,10 +3,11 @@
 use App\Enums\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\CraftsmanController;
 use App\Http\Controllers\Api\Enum\EnumController;
+use App\Http\Controllers\Api\PrestationController;
 use App\Http\Controllers\Api\CraftsmanJobController;
 use App\Http\Controllers\Api\UserProfilePictureController;
 
@@ -39,14 +40,28 @@ Route::middleware('auth:sanctum')->group(function() {
     //Upload user profile picture
     Route::post('/user-profile-picture', [UserProfilePictureController::class, 'profilePicture']);
 
-        Route::middleware('isCraftsman')->group(function() {
-            //Craftsman infos
-            Route::post('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
-        });
+    //craftsman and client can get details of a prestation
+    Route::get('prestation/{prestation}', [PrestationController::class, 'showPrestation']);
 
-        Route::middleware('isClient')->group(function() {
-            //Client infos
-            Route::post('/client-infos', [ClientController::class, 'clientInfos']);
+    Route::middleware('isCraftsman')->group(function() {
+        //Craftsman infos
+        Route::post('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
+        Route::prefix('prestation')->group(function() {
+            Route::patch('/{prestationId}/quote', [PrestationController::class, 'craftsmanQuotePrestation']);
+            Route::patch('/{prestationId}/craftsman-refuse', [PrestationController::class, 'craftsmanRefusePrestation']);
+            Route::patch('/{prestationId}/completed', [PrestationController::class, 'craftsmanCompletePrestation']);
         });
+    });
+
+    Route::middleware('isClient')->group(function() {
+        //Client infos
+        Route::post('/client-infos', [ClientController::class, 'clientInfos']);
+
+        Route::prefix('prestation')->group(function() {
+            Route::post('/{craftsmanId}', [PrestationController::class, 'clientNewPrestation']);
+            Route::patch('/{prestationId}/accept', [PrestationController::class, 'clientAcceptPrestation']);
+            Route::patch('/{prestationId}/client-refuse', [PrestationController::class, 'clientRefusePrestation']);
+        });
+    });
 
 });

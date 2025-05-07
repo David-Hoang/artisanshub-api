@@ -51,7 +51,7 @@ class CraftsmanController extends Controller
                 [
                     "message" => "Les informations ont bien été sauvegardés.",
                 ],
-                $craftsman->wasRecentlyCreated ? 201 : 200
+                $craftsman->wasRecentlyCreated ? 201 : 200 //throw 201 code if new craftsman else 200
             );
         } catch (ValidationException $e) {
 

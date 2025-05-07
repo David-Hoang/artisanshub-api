@@ -20,8 +20,7 @@ class CraftsmanJobController extends Controller
 
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la récupération des métiers.",
-                "error" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de la récupération des métiers."
             ], 500);
         }
     }
@@ -35,8 +34,7 @@ class CraftsmanJobController extends Controller
 
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la récupération du métier.",
-                "error" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de la récupération du métier."
             ], 500);
         }
     }
