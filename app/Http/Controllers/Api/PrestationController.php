@@ -24,9 +24,6 @@ class PrestationController extends Controller
                 "description" => "required|string|max:65535",
             ], $this->messages());
 
-            // format price before insertion, 2 numbers after dot,
-            // $formatPrice = (float)number_format($req->price, 2, ".", "");
-
             Prestation::create([
                 "client_id" => $user->client->id ?? null,
                 "craftsman_id" => $craftsman->id ?? null,
@@ -49,8 +46,7 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la demande de la prestation.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de la demande de la prestation."
             ], 500);
         }
     }
@@ -77,8 +73,7 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la demande de la prestation.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de la demande de la prestation."
             ], 500);
         }
     }
@@ -128,8 +123,7 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de l'enregistrement des informations.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de l'enregistrement des informations."
             ], 500);
         }
     }
@@ -163,8 +157,7 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de l'acceptation de la prestation.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de l'acceptation de la prestation."
             ], 500);
         }
     }
@@ -200,8 +193,7 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de l'acceptation de la prestation.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de l'acceptation de la prestation."
             ], 500);
         }
     }
@@ -235,8 +227,7 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors du refus de la prestation.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors du refus de la prestation."
             ], 500);
         }
     }
@@ -269,118 +260,10 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors du refus de la prestation.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors du refus de la prestation."
             ], 500);
         }
     }
-
-
-    //Allow client to edit prestation while prestation is still pending
-    // public function clientEditPrestation(Request $req, $prestationId)
-    // {
-    //     try {
-    //         $prestation = Prestation::findOrFail($prestationId);
-    //         $user = Auth::user();
-
-    //         // Client can edit if it's still pending and if the prestation belongs to them
-    //         if($prestation->state === OrderStatus::PENDING && $prestation->client_id === $user->client->id ){
-    //             $req->validate([
-    //                 "price" => "required|numeric|between:0,99999999.99",
-    //                 "description" => "nullable|string|max:65535",
-    //                 "date" => "required|date|after:now",
-    //             ], $this->messages());
-
-    //             $formatPrice = (float)number_format($req->price, 2, ".", "");
-
-    //             $prestation->update([
-    //                 "price" => $formatPrice,
-    //                 "description" => $req->description,
-    //                 "date" => $req->date
-    //             ]);
-
-    //             return response()->json(
-    //                 ["message" => "Les informations de la prestation ont bien été enregistrées."],
-    //                 $prestation->wasRecentlyCreated ? 201 : 200
-    //             );
-
-    //         }else {
-                
-    //             $message = "Vous n'êtes pas autorisé à modifier cette prestation.";
-                
-    //             if($prestation->state !== OrderStatus::PENDING){
-    //                 $message = "La prestation n'est pas modifiable.";
-    //             }
-                
-    //             if($prestation->client_id !== $user->client->id){
-    //                 $message = "Accès refusé : La prestation ne vous appartient pas.";
-    //             }
-                
-
-    //             return response()->json([
-    //                 "message" => $message,
-    //             ], 403);
-    //         }
-    //     } catch (ModelNotFoundException $e) {
-    //         // Throw this if prestation id doesn't exist
-    //         return response()->json([
-    //             'message' => 'Prestation non trouvée.',
-    //         ], 404);
-    //     } catch (ValidationException $e) {
-
-    //         return response()->json([
-    //             "errors" => $e->errors()
-    //         ], 422);
-    //     } catch (\Exception $e) {
-    //         //Throw internal server error
-    //         return response()->json([
-    //             "message" => "Une erreur s'est produite lors de l'enregistrement des informations.",
-    //             "e" => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-    // Client can cancel a prestation
-    // public function clientCancelPrestation($prestationId)
-    // {
-    //     try {
-    //         $prestation = Prestation::findOrFail($prestationId);
-    //         $user = Auth::user();
-
-    //         // Client can edit if it's still pending and if the prestation belongs to them
-    //         if($prestation->client_id === $user->client->id ){
-    //             $prestation->update([
-    //                 "state" => OrderStatus::CANCELLED
-    //             ]);
-
-    //             return response()->json(["message" => "La prestation a été annulé."], 200);
-
-    //         }else {
-                
-    //             return response()->json([
-    //                 "message" => "Accès refusé : La prestation ne vous appartient pas.",
-    //             ], 403);
-    //         }
-    //     } catch (ModelNotFoundException $e) {
-    //         // Throw this if prestation id doesn't exist
-    //         return response()->json([
-    //             'message' => 'Prestation non trouvée.',
-    //         ], 404);
-    //     } catch (ValidationException $e) {
-
-    //         return response()->json([
-    //             "errors" => $e->errors()
-    //         ], 422);
-    //     } catch (\Exception $e) {
-    //         //Throw internal server error
-    //         return response()->json([
-    //             "message" => "Une erreur s'est produite lors de l'annulation de la prestation.",
-    //             "e" => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-
 
     protected function messages(): array
     {

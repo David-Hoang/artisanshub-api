@@ -59,8 +59,7 @@ class UserProfilePictureController extends Controller
 
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur est survenue lors de l’enregistrement de la photo de profil.",
-                "err" => $e->getMessage()
+                "message" => "Une erreur est survenue lors de l’enregistrement de la photo de profil."
             ], 500);
         }
     }
