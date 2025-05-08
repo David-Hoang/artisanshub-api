@@ -4,6 +4,7 @@ use App\Enums\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\CraftsmanController;
 use App\Http\Controllers\Api\Enum\EnumController;
@@ -42,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function() {
 
     //craftsman and client can get details of a prestation
     Route::get('prestation/{prestation}', [PrestationController::class, 'showPrestation']);
+
+    Route::post('/message/send/{receiverId}', [MessageController::class, 'sendMessage']);
 
     Route::middleware('isCraftsman')->group(function() {
         //Craftsman infos

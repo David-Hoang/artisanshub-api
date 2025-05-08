@@ -9,6 +9,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -72,5 +73,16 @@ class User extends Authenticatable
     public function profileImg(): HasOne
     {
         return $this->hasOne(UserProfilePicture::class);
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    // return user role
+    public function getRole(): HasOne
+    {
+        return $this->hasOne(Client::class) ? $this->hasOne(Client::class) : $this->hasOne(Craftsman::class);
     }
 }
