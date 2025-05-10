@@ -75,14 +75,47 @@ class User extends Authenticatable
         return $this->hasOne(UserProfilePicture::class);
     }
 
-    public function messages(): HasMany
+    public function sentMessages(): HasMany
     {
-        return $this->hasMany(Message::class);
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+    
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
     }
 
-    // return user role
-    public function getRole(): HasOne
+    // return user profile
+    public function profile()
     {
-        return $this->hasOne(Client::class) ? $this->hasOne(Client::class) : $this->hasOne(Craftsman::class);
+        if ($this->client()->exists()) {
+            return $this->client;
+        }
+    
+        if ($this->craftsman()->exists()) {
+            return $this->craftsman;
+        }
+    
+        return null;
+    }
+
+    // Get all users the current user has conversations with
+    public function conversations()
+    {
+        // Get the IDs of users this user has sent messages to
+        $sentTo = $this->sentMessages->pluck('receiver_id')->unique();
+
+        // Get the IDs of users who have sent messages to this user
+        $receivedFrom = $this->receivedMessages->pluck('sender_id')->unique();
+
+        // Merge both collections to get all user IDs in an array
+        $uniqueUsers = $sentTo->merge($receivedFrom)->unique();
+
+        // Retrieve all users who have exchanged at least one message with the current user in a single query
+        $uniqueUsersInfos = User::whereIn('id', $uniqueUsers)
+        ->select('id', 'first_name', 'last_name', 'email')
+        ->get();
+
+        return $uniqueUsersInfos;
     }
 }

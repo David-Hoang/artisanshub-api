@@ -44,7 +44,13 @@ Route::middleware('auth:sanctum')->group(function() {
     //craftsman and client can get details of a prestation
     Route::get('prestation/{prestation}', [PrestationController::class, 'showPrestation']);
 
-    Route::post('/message/send/{receiverId}', [MessageController::class, 'sendMessage']);
+    Route::prefix('message')->group(function() {
+        //Send message
+        Route::post('/send/{receiverId}', [MessageController::class, 'sendMessage']);
+    
+        //Get list conversation
+        Route::get('/all-conversations', [MessageController::class, 'allConversations']);
+    });
 
     Route::middleware('isCraftsman')->group(function() {
         //Craftsman infos
