@@ -4,6 +4,7 @@ use App\Enums\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\CraftsmanController;
 use App\Http\Controllers\Api\Enum\EnumController;
@@ -33,15 +34,24 @@ Route::post('/jobs/new-job', [CraftsmanJobController::class, 'addJob']);
 
 Route::middleware('auth:sanctum')->group(function() {
 
-    Route::post('/auth', [AuthController::class, 'checkAuth']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/all-users', [AuthController::class, 'allUsers']);
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::patch('/me/update', [AuthController::class, 'updateUserInfos']);
 
     //Upload user profile picture
     Route::post('/user-profile-picture', [UserProfilePictureController::class, 'profilePicture']);
 
     //craftsman and client can get details of a prestation
     Route::get('prestation/{prestation}', [PrestationController::class, 'showPrestation']);
+
+    Route::prefix('message')->group(function() {
+        //Send message
+        Route::post('/send/{receiverId}', [MessageController::class, 'sendMessage']);
+    
+        //Get list conversation
+        Route::get('/all-conversations', [MessageController::class, 'allConversations']);
+    });
 
     Route::middleware('isCraftsman')->group(function() {
         //Craftsman infos

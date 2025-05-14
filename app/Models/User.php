@@ -9,6 +9,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -72,5 +73,49 @@ class User extends Authenticatable
     public function profileImg(): HasOne
     {
         return $this->hasOne(UserProfilePicture::class);
+    }
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+    
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
+    // return user profile
+    public function profile()
+    {
+        if ($this->client()->exists()) {
+            return $this->client;
+        }
+    
+        if ($this->craftsman()->exists()) {
+            return $this->craftsman;
+        }
+    
+        return null;
+    }
+
+    // Get all users the current user has conversations with
+    public function conversations()
+    {
+        // Get the IDs of users this user has sent messages to
+        $sentTo = $this->sentMessages->pluck('receiver_id')->unique();
+
+        // Get the IDs of users who have sent messages to this user
+        $receivedFrom = $this->receivedMessages->pluck('sender_id')->unique();
+
+        // Merge both collections to get all user IDs in an array
+        $uniqueUsers = $sentTo->merge($receivedFrom)->unique();
+
+        // Retrieve all users who have exchanged at least one message with the current user in a single query
+        $uniqueUsersInfos = User::whereIn('id', $uniqueUsers)
+        ->select('id', 'first_name', 'last_name', 'email')
+        ->get();
+
+        return $uniqueUsersInfos;
     }
 }

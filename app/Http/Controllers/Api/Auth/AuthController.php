@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Models\UserProfilePicture;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -119,13 +120,41 @@ class AuthController extends Controller
         }
     }
 
-    public function checkAuth (Request $req) {
+    public function me () {
         try {
-            $user = $req->user();
-
-            if($user) return response()->json($user, 200);
+            $user = Auth::user();
+            return response()->json($user, 200);
         } catch (\Exception $e) {
             return response()->json(["message" => "Une erreur s'est produite lors de la tentiative de déconnexion."], 500);
+        }
+    }
+
+    public function updateUserInfos(Request $req) {
+        try {
+            $user = Auth::user();
+            $validation = $req->validate([
+                "first_name" => "required|string|max:255",
+                "last_name" => "required|string|max:255",
+                "username" => "nullable|string|max:255",
+                "phone" => "required|regex:/^(0\d{9})$/",
+                "city" => "required|string|max:255",
+                "region" => ["required", Rule::in(Region::cases())],
+                "zipcode" => "required|regex:/^\d{5}$/"
+            ], $this->messages());
+
+            $user->update($validation);
+
+            return response()->json(["message" => "Les informations ont bien été mises à jour."], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                "errors" => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de le mise à jour des informations."
+            ], 500);
         }
     }
 
