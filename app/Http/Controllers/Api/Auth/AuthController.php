@@ -84,7 +84,7 @@ class AuthController extends Controller
                     "message" => "Les informations de connexion ne sont pas valides."
                 ], 401);
             
-            // Génération du token
+            // Token generate
             $userToken = $user->createToken($user->id);
     
             return response()->json([
@@ -198,9 +198,9 @@ class AuthController extends Controller
             "password.string" => "Le mot de passe doit être une chaîne de caractère.",
 
             "phone.required" => "Veuillez renseigner votre numéro de téléphone.",
-            "phone.regex" => "Le numéro de téléphone ne doit contenir 10 chiffres.",
+            "phone.regex" => "Le numéro de téléphone doit commencer par 0 et doit contenir 10 chiffres.",
 
-            "city.required" => "Veuillez renseignere votre nom de ville.",
+            "city.required" => "Veuillez renseigner le nom de votre ville.",
             "city.string" => "Votre ville renseigner doit être une chaîne de caractère.",
             "city.max" => "Votre nom de ville ne doit pas dépasser les 255 caractères.",
 

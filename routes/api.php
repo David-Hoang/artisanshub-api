@@ -31,6 +31,7 @@ Route::get('/enums/regions', [EnumController::class, 'regions']);
 Route::get('/jobs', [CraftsmanJobController::class, 'jobs']);
 Route::get('/jobs/{id}', [CraftsmanJobController::class, 'singleJob']);
 Route::post('/jobs/new-job', [CraftsmanJobController::class, 'addJob']);
+Route::put('/job/{craftsmanJobId}/update', [CraftsmanJobController::class, 'updateJob']);
 
 Route::middleware('auth:sanctum')->group(function() {
 
