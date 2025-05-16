@@ -172,14 +172,14 @@ class AuthController extends Controller
 
             if(!Hash::check($req->password, $user->password))
                 return response()->json([
-                    "message" => "Le mot de passe que vous avez saisi est invalide."
+                    "message" => "Le mot de passe actuel est incorrect."
                 ], 401);
             
             $user->update([
                 "password" => $req->new_password
             ]);
 
-            return response()->json(["message" => "Les informations ont bien été mises à jour."], 200);
+            return response()->json(["message" => "Le mot de passe a été mis à jour avec succès."], 200);
         } catch (ValidationException $e) {
 
             return response()->json([
@@ -188,8 +188,7 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de le mise à jour des informations.",
-                "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de la mise à jour du mot de passe."
             ], 500);
         }
     }
