@@ -12,6 +12,7 @@ use App\Models\UserProfilePicture;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -24,7 +25,8 @@ class AuthController extends Controller
                 "email" => "required|email|unique:users,email",
                 "username" => "nullable|string|max:255",
                 "role" => ["required", Rule::in(Role::cases())],
-                "password" => "required|string",
+                "password" => ["required", "confirmed", Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()],
+                "password_confirmation" => "required",
                 "phone" => "required|regex:/^(0\d{9})$/",
                 "city" => "required|string|max:255",
                 "region" => ["required", Rule::in(Region::cases())],
@@ -120,9 +122,10 @@ class AuthController extends Controller
         }
     }
 
-    public function me () {
+    public function me() {
         try {
             $user = Auth::user();
+
             return response()->json($user, 200);
         } catch (\Exception $e) {
             return response()->json(["message" => "Une erreur s'est produite lors de la tentiative de déconnexion."], 500);
@@ -145,8 +148,8 @@ class AuthController extends Controller
             $user->update($validation);
 
             return response()->json(["message" => "Les informations ont bien été mises à jour."], 200);
-
         } catch (ValidationException $e) {
+
             return response()->json([
                 "errors" => $e->errors()
             ], 422);
@@ -154,6 +157,40 @@ class AuthController extends Controller
             //Throw internal server error
             return response()->json([
                 "message" => "Une erreur s'est produite lors de le mise à jour des informations."
+            ], 500);
+        }
+    }
+
+    public function updateUserPassword (Request $req) {
+        
+        try {
+            $user = Auth::user();
+
+            $req->validate([
+                "password" => "required",
+                "new_password" => ["required", "confirmed", Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()],
+                "new_password_confirmation" => "required"
+            ], $this->messages());
+
+            if(!Hash::check($req->password, $user->password))
+                return response()->json([
+                    "message" => "Le mot de passe actuel est incorrect."
+                ], 401);
+            
+            $user->update([
+                "password" => $req->new_password
+            ]);
+
+            return response()->json(["message" => "Le mot de passe a été mis à jour avec succès."], 200);
+        } catch (ValidationException $e) {
+
+            return response()->json([
+                "errors" => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la mise à jour du mot de passe."
             ], 500);
         }
     }
@@ -195,7 +232,21 @@ class AuthController extends Controller
             "role.in" => "Le role sélectionné n'est pas valide.",
 
             "password.required" => "Veuillez renseigner un mot de passe.",
-            "password.string" => "Le mot de passe doit être une chaîne de caractère.",
+            "password.confirmed" => "Les mots de passe ne correspondent pas.",
+            "password.min" => "Le mot de passe doit contenir au moins 8 caractères.",
+            "password.letters" => "Le mot de passe doit contenir au moins une lettre.",
+            "password.mixed" => "Le mot de passe doit contenir au moins une lettre majuscule et une lettre minuscule.",
+            "password.numbers" => "Le mot de passe doit contenir au moins un chiffre.",
+            "password.symbols" => "Le mot de passe doit contenir au moins un caractère spécial.",
+            "password.uncompromised" => "Ce mot de passe a été compromis dans une fuite de données. Veuillez en choisir un autre.",
+
+            "password_confirmation.required" => "Veuillez confirmer votre mot de passe.",
+
+            "new_password.required" => "Veuillez renseigner le nouveau mot de passe.",
+            "new_password.confirmed" => "Les mots de passe ne correspondent pas.",
+            "new_password.min" => "Le mot de passe doit contenir au moins 8 caractères.",
+            
+            "new_password_confirmation" => "Veuillez confirmer votre nouveau mot de passe.",
 
             "phone.required" => "Veuillez renseigner votre numéro de téléphone.",
             "phone.regex" => "Le numéro de téléphone doit commencer par 0 et doit contenir 10 chiffres.",

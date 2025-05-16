@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/all-users', [AuthController::class, 'allUsers']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me/update', [AuthController::class, 'updateUserInfos']);
+    Route::patch('/me/update-password', [AuthController::class, 'updateUserPassword']);
 
     //Upload user profile picture
     Route::post('/user-profile-picture', [UserProfilePictureController::class, 'profilePicture']);

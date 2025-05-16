@@ -34,7 +34,7 @@ class ClientController extends Controller
                 [
                     "message" => "Les informations ont bien été sauvegardés.",
                 ],
-                $client->wasRecentlyCreated ? 201 : 200 //throw 201 code if new client else 200);
+                $client->wasRecentlyCreated ? 201 : 200 // throw 201 code if new client else 200;
             ); 
         } catch (ValidationException $e) {
 
