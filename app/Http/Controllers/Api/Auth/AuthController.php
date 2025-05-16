@@ -125,6 +125,7 @@ class AuthController extends Controller
     public function me() {
         try {
             $user = Auth::user();
+
             return response()->json($user, 200);
         } catch (\Exception $e) {
             return response()->json(["message" => "Une erreur s'est produite lors de la tentiative de déconnexion."], 500);
@@ -161,6 +162,7 @@ class AuthController extends Controller
     }
 
     public function updateUserPassword (Request $req) {
+        
         try {
             $user = Auth::user();
 
@@ -243,8 +245,8 @@ class AuthController extends Controller
             "new_password.required" => "Veuillez renseigner le nouveau mot de passe.",
             "new_password.confirmed" => "Les mots de passe ne correspondent pas.",
             "new_password.min" => "Le mot de passe doit contenir au moins 8 caractères.",
-        
-
+            
+            "new_password_confirmation" => "Veuillez confirmer votre nouveau mot de passe.",
 
             "phone.required" => "Veuillez renseigner votre numéro de téléphone.",
             "phone.regex" => "Le numéro de téléphone doit commencer par 0 et doit contenir 10 chiffres.",
