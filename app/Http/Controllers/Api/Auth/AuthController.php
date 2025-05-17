@@ -118,7 +118,7 @@ class AuthController extends Controller
             return response()->json(["message" => "Déconnexion réussie."], 200);
 
         } catch (\Exception $e) {
-            return response()->json(["message" => "Une erreur s'est produite lors de la tentiative de déconnexion."], 500);
+            return response()->json(["message" => "Une erreur s'est produite lors de la tentative de déconnexion."], 500);
         }
     }
 
@@ -126,9 +126,14 @@ class AuthController extends Controller
         try {
             $user = Auth::user();
 
-            return response()->json($user, 200);
+            if($user->role === Role::CLIENT){
+                return response()->json($user->load(['client', 'profileImg']), 200);
+            }else if($user->role === Role::CRAFTSMAN){
+                return response()->json($user->load(['craftsman', 'profileImg']), 200);
+            }
+            
         } catch (\Exception $e) {
-            return response()->json(["message" => "Une erreur s'est produite lors de la tentiative de déconnexion."], 500);
+            return response()->json(["message" => "Une erreur s'est produite lors de la récupération des données."], 500);
         }
     }
 
