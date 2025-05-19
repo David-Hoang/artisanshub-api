@@ -45,9 +45,17 @@ class AuthController extends Controller
 
             // Generate token
             $userToken = $newUser->createToken($newUser->id);
+
+            // populate infos for client or craftsman
+            if($newUser->role === Role::CLIENT){
+                $newUser->load(['client', 'profileImg']);
+            }else if($newUser->role === Role::CRAFTSMAN){
+                $newUser->load(['craftsman', 'profileImg', 'craftsman.gallery']);
+            }
             
             return response()->json([
                 "message" => "Utilisateur créé avec succès !",
+                "user" => $newUser,
                 "token" => $userToken->plainTextToken,
             ], 201);
         } catch (ValidationException $e) {
@@ -88,7 +96,14 @@ class AuthController extends Controller
             
             // Token generate
             $userToken = $user->createToken($user->id);
-    
+            
+            // populate infos for client or craftsman
+            if($user->role === Role::CLIENT){
+                $user->load(['client', 'profileImg']);
+            }else if($user->role === Role::CRAFTSMAN){
+                $user->load(['craftsman', 'profileImg', 'craftsman.gallery']);
+            }
+
             return response()->json([
                 "message" => "Connexion réussie !",
                 "user" => $user,
@@ -104,7 +119,7 @@ class AuthController extends Controller
 
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la tentative de connexion.",
+                "message" => "Une erreur s'est produite lors de la tentative de connexion.", "e" => $e->getMessage()
             ], 500);
         }
     }
@@ -129,13 +144,11 @@ class AuthController extends Controller
             if($user->role === Role::CLIENT){
                 return response()->json($user->load(['client', 'profileImg']), 200);
             }else if($user->role === Role::CRAFTSMAN){
-                $user->load(['craftsman', 'profileImg']);
-                $user->craftsman->gallery = $user->craftsman->gallery;
-                return response()->json($user, 200);
+                return response()->json($user->load(['craftsman', 'profileImg', 'craftsman.gallery']), 200);
             }
             
         } catch (\Exception $e) {
-            return response()->json(["message" => "Une erreur s'est produite lors de la récupération des données."], 500);
+            return response()->json(["message" => "Une erreur s'est produite lors de la récupération des données.", "e" => $e->getMessage()], 500);
         }
     }
 
