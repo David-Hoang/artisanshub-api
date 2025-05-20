@@ -43,8 +43,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'client', //Hide property to prevent double data in JSON
-        'craftsman', //Hide property to prevent double data in JSON
     ];
 
     /**
@@ -60,15 +58,6 @@ class User extends Authenticatable
             'role' => Role::class,
             'region' => Region::class
         ];
-    }
-
-    // Accessor, it append property profile when convert to JSON
-    protected $appends = ['profile'];
-
-    // Get profile of user (Craftsman or Client)
-    public function getProfileAttribute()
-    {
-        return $this->profile();
     }
 
     public function craftsman(): HasOne
