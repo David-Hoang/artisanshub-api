@@ -14,6 +14,7 @@ class Prestation extends Model
         'client_id',
         'craftsman_id',
         'price',
+        'title',
         'description',
         'date',
         'state'

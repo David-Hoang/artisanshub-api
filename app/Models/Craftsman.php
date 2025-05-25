@@ -49,4 +49,14 @@ class Craftsman extends Model
     {
         return $this->hasMany(CraftsmanGallery::class);
     }
+
+    public function prestations()
+    {
+        return $this->hasMany(Prestation::class);
+    }
+
+    public function displayName() 
+    {
+        return $this->user->first_name. ' ' . $this->user->last_name;
+    }
 }

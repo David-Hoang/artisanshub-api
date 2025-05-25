@@ -13,7 +13,7 @@ class ClientController extends Controller
     public function clientInfos(Request $req)
     {
         try {
-            $user = Auth::user();
+            $user = $req->user();
 
             $req->validate([
                 "street_number" => "required|integer|min:0",

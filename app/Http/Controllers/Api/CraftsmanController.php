@@ -15,7 +15,7 @@ class CraftsmanController extends Controller
     public function craftsmanInfos(Request $req)
     {
         try {
-            $user = Auth::user();
+            $user = $req->user();
 
             $req->validate([
                 "price" => "nullable|numeric|between:0,99999999.99",

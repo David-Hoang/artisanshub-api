@@ -17,7 +17,7 @@ class MessageController extends Controller
         try{
 
             $receiver = User::findOrFail($receiverId);
-            $sender = Auth::user();
+            $sender = $req->user();
 
             if($sender->id === $receiver->id){
                 return response()->json([
@@ -55,10 +55,10 @@ class MessageController extends Controller
         }
     }
 
-    public function allConversations()
+    public function allConversations(Request $req)
     {
         try {
-            $user = Auth::user();
+            $user = $req->user();
             return response()->json($user->conversations(), 200);
             
         } catch (\Exception $e) {

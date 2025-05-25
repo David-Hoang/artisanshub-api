@@ -119,7 +119,7 @@ class AuthController extends Controller
 
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la tentative de connexion.", "e" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de la tentative de connexion.",
             ], 500);
         }
     }
@@ -137,9 +137,9 @@ class AuthController extends Controller
         }
     }
 
-    public function me() {
+    public function me(Request $req) {
         try {
-            $user = Auth::user();
+            $user = $req->user();
 
             if($user->role === Role::CLIENT){
                 return response()->json($user->load(['client', 'profileImg']), 200);
@@ -148,13 +148,13 @@ class AuthController extends Controller
             }
             
         } catch (\Exception $e) {
-            return response()->json(["message" => "Une erreur s'est produite lors de la récupération des données.", "e" => $e->getMessage()], 500);
+            return response()->json(["message" => "Une erreur s'est produite lors de la récupération des données."], 500);
         }
     }
 
     public function updateUserInfos(Request $req) {
         try {
-            $user = Auth::user();
+            $user = $req->user();
             $validation = $req->validate([
                 "first_name" => "required|string|max:255",
                 "last_name" => "required|string|max:255",
@@ -184,7 +184,7 @@ class AuthController extends Controller
     public function updateUserPassword (Request $req) {
         
         try {
-            $user = Auth::user();
+            $user = $req->user();
 
             $req->validate([
                 "password" => "required",
