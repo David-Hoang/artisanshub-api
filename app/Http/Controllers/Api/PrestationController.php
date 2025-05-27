@@ -21,18 +21,21 @@ class PrestationController extends Controller
             $user = $req->user();
 
             if ($user->role === Role::CLIENT) {
-                $prestations = $user->client->prestations;
-                $prestations->load([
-                                'craftsman.job:id,name', //load craftsman job name
-                                'craftsman.user:id,last_name,first_name,phone,email', //load craftsman user infos
-                                'craftsman.user.profileImg:user_id,img_path,img_title' //load user img
-                            ]);
+
+                $client = $user->client()->with([
+                    'prestations.craftsman:id,user_id',
+                    'prestations.craftsman.user:id,first_name,last_name'
+                ])->first();
+                $prestations = $client->prestations;
+
             } else if ($user->role === Role::CRAFTSMAN) {
-                $prestations = $user->craftsman->prestations;
-                $prestations->load([
-                                'client.user:id,last_name,first_name,phone,email', //load client user infos
-                                'client.user.profileImg:user_id,img_path,img_title' //load user img
-                            ]);
+
+                $craftsman = $user->craftsman()->with([
+                    'prestations.client:id,user_id',
+                    'prestations.client.user:id,first_name,last_name'
+                ])->first();
+                $prestations = $craftsman->prestations;
+                
             }
 
             return response()->json($prestations, 200);
@@ -40,10 +43,53 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la récupération des prestations."
+                "message" => "Une erreur s'est produite lors de la récupération des prestations.",
             ], 500);
         }
     }
+
+    // Both client and craftsman can show prestation details
+    public function showPrestation(Request $req, $prestationId)
+    {
+        try {
+            $user = $req->user();
+
+            if ($user->role === Role::CLIENT) {
+                $prestation = $user->client
+                    ->prestations()
+                    ->with([
+                        'craftsman.job:id,name',
+                        'craftsman.user:id,last_name,first_name,phone,email',
+                        'craftsman.user.profileImg:user_id,img_path,img_title'
+                    ])
+                    ->findOrFail($prestationId);
+
+            } else if ($user->role === Role::CRAFTSMAN) {
+                $prestation = $user->craftsman
+                    ->prestations()
+                    ->with([
+                        'client.user:id,last_name,first_name,phone,email',
+                        'client.user.profileImg:user_id,img_path,img_title'
+                    ])
+                    ->findOrFail($prestationId);
+            } else {
+                return response()->json([
+                    "message" => "Vous n'avez pas accès à cette prestation."
+                ], 403);
+            }
+
+            return response()->json($prestation, 200);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Prestation non trouvée.'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la demande de la prestation."
+            ], 500);
+        }
+    }    
 
     // Client create new prestation
     public function clientNewPrestation(Request $req, $craftsmanId)
@@ -81,33 +127,6 @@ class PrestationController extends Controller
             //Throw internal server error
             return response()->json([
                 "message" => "Une erreur s'est produite lors de la demande de la prestation.",
-            ], 500);
-        }
-    }
-
-    // Both client and craftsman can show prestation details
-    public function showPrestation(Request $req, $prestationId)
-    {
-        try {
-            $prestation = Prestation::findOrFail($prestationId);
-            $user = $req->user();
-
-            //Checking if prestation owned by craftsman or client
-            if($prestation->client_id === $user->client?->id || $prestation->craftsman_id === $user->craftsman?->id){
-                return response()->json($prestation, 200);
-            }else{
-                return response()->json(["message" => "Accès refusé : vous ne pouvez pas consulter cette prestation.", 403]);
-            }
-
-        } catch (ModelNotFoundException $e) {
-            // Throw this if craftsman id doesn't exist
-            return response()->json([
-                'message' => 'Prestation non trouvée.',
-            ], 404);
-        } catch (\Exception $e) {
-            //Throw internal server error
-            return response()->json([
-                "message" => "Une erreur s'est produite lors de la demande de la prestation."
             ], 500);
         }
     }
@@ -183,11 +202,6 @@ class PrestationController extends Controller
             return response()->json([
                 'message' => 'Prestation non trouvée.',
             ], 404);
-        } catch (ValidationException $e) {
-
-            return response()->json([
-                "errors" => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
@@ -232,7 +246,6 @@ class PrestationController extends Controller
         }
     }
 
-
     public function craftsmanRefusePrestation(Request $req, $prestationId)
     {
         try {
@@ -253,11 +266,6 @@ class PrestationController extends Controller
             return response()->json([
                 'message' => 'Prestation non trouvée.',
             ], 404);
-        } catch (ValidationException $e) {
-
-            return response()->json([
-                "errors" => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
@@ -311,6 +319,7 @@ class PrestationController extends Controller
         'title.max' => 'Le titre ne peut pas dépasser 255 caractères.',
 
         'description.string' => 'La description doit être une chaîne de caractères.',
+        'description.required' => 'Veuillez formuler votre demande.',
         'description.max' => 'La description ne doit pas dépasser 65 535 caractères.',
     
         'date.required' => 'La date est requise.',
