@@ -138,7 +138,7 @@ class PrestationController extends Controller
             $prestation = Prestation::findOrFail($prestationId);
             $craftsman = $req->user()->craftsman;
             
-            // Client can edit if it's still pending and if the prestation belongs to them
+            // Craftsman can edit if it's still await-craftsman and if the prestation belongs to him
             if($prestation->craftsman_id === $craftsman->id && $prestation->state === OrderStatus::AWAITCRAFTSMAN ){
                 $req->validate([
                     "price" => "required|numeric|between:0,99999999.99",
@@ -216,7 +216,7 @@ class PrestationController extends Controller
             $prestation = Prestation::findOrFail($prestationId);
             $craftsman = $req->user()->craftsman;
 
-            // Client accepting if the status is await-client and if the prestation belongs to him
+            // Craftsman close this prestation if the status is confirmed and if the prestation belongs to him
             if($prestation->craftsman_id === $craftsman->id && $prestation->state === OrderStatus::CONFIRMED ){
                 $prestation->update([
                     "state" => OrderStatus::COMPLETED
@@ -252,7 +252,7 @@ class PrestationController extends Controller
             $prestation = Prestation::findOrFail($prestationId);
             $craftsman = $req->user()->craftsman;
 
-            // Client accepting if the status is await-client and if the prestation belongs to him
+            // Craftsman can refuse if prestation is await-craftsman and if the prestation belongs to him
             if($prestation->craftsman_id === $craftsman->id && $prestation->state === OrderStatus::AWAITCRAFTSMAN){
                 $prestation->update([
                     "state" => OrderStatus::REFUSEDBYCRAFTSMAN

@@ -31,4 +31,17 @@ class Client extends Model
     {
         return $this->hasMany(Prestation::class);
     }
+
+    protected $appends = ['full_address'];
+
+    public function getFullAddressAttribute()
+    {
+        $address = $this->street_number . ' ' . $this->street_name;
+        
+        if ($this->complement) {
+            $address .= ', ' . $this->complement;
+        }
+        
+        return $address;
+    }
 }

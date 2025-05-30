@@ -20,7 +20,7 @@ class ClientFactory extends Factory
         return [
             'street_name' => fake()->name(),
             'street_number' => fake()->numberBetween(1, 100),
-            'complement' => fake()->sentences(3, true),
+            'complement' => fake()->sentences(2, true),
         ];
     }
 }
