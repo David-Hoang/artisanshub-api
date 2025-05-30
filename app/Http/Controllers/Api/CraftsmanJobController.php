@@ -132,7 +132,6 @@ class CraftsmanJobController extends Controller
             //Throw internal server error
             return response()->json([
                 "message" => "Une erreur est survenue lors de la mise à jour du métier.",
-                "e" => $e->getMessage()
             ], 500);
         }
     }

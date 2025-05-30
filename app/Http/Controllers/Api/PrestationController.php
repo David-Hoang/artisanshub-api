@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Role;
 use App\Models\Craftsman;
 use App\Enums\OrderStatus;
 use App\Models\Prestation;
@@ -13,20 +14,99 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PrestationController extends Controller
 {   
+    // List of prestation depend role
+    public function listPrestations(Request $req)
+    {
+        try {
+            $user = $req->user();
+
+            if ($user->role === Role::CLIENT) {
+
+                $client = $user->client()->with([
+                    'prestations.craftsman:id,user_id',
+                    'prestations.craftsman.user:id,first_name,last_name'
+                ])->first();
+                $prestations = $client->prestations;
+
+            } else if ($user->role === Role::CRAFTSMAN) {
+
+                $craftsman = $user->craftsman()->with([
+                    'prestations.client:id,user_id',
+                    'prestations.client.user:id,first_name,last_name'
+                ])->first();
+                $prestations = $craftsman->prestations;
+                
+            }
+
+            return response()->json($prestations, 200);
+
+        } catch (\Exception $e) {
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des prestations.",
+            ], 500);
+        }
+    }
+
+    // Both client and craftsman can show prestation details
+    public function showPrestation(Request $req, $prestationId)
+    {
+        try {
+            $user = $req->user();
+
+            if ($user->role === Role::CLIENT) {
+                $prestation = $user->client
+                    ->prestations()
+                    ->with([
+                        'craftsman.job:id,name',
+                        'craftsman.user:id,last_name,first_name,phone,email',
+                        'craftsman.user.profileImg:user_id,img_path,img_title'
+                    ])
+                    ->findOrFail($prestationId);
+
+            } else if ($user->role === Role::CRAFTSMAN) {
+                $prestation = $user->craftsman
+                    ->prestations()
+                    ->with([
+                        'client.user:id,last_name,first_name,phone,email',
+                        'client.user.profileImg:user_id,img_path,img_title'
+                    ])
+                    ->findOrFail($prestationId);
+            } else {
+                return response()->json([
+                    "message" => "Vous n'avez pas accès à cette prestation."
+                ], 403);
+            }
+
+            return response()->json($prestation, 200);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Prestation non trouvée.'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la demande de la prestation."
+            ], 500);
+        }
+    }    
+
     // Client create new prestation
     public function clientNewPrestation(Request $req, $craftsmanId)
     {
         try {
             $craftsman = Craftsman::findOrFail($craftsmanId);
-            $user = Auth::user();
+            $user = $req->user();
 
             $req->validate([
+                "title" => "required|string|max:255",
                 "description" => "required|string|max:65535",
             ], $this->messages());
 
             Prestation::create([
                 "client_id" => $user->client->id ?? null,
                 "craftsman_id" => $craftsman->id ?? null,
+                "title" => $req->title,
                 "description" => $req->description,
                 "state" => OrderStatus::AWAITCRAFTSMAN
             ]);
@@ -46,34 +126,7 @@ class PrestationController extends Controller
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la demande de la prestation."
-            ], 500);
-        }
-    }
-
-    // Both client and craftsman can show prestation details
-    public function showPrestation($prestationId)
-    {
-        try {
-            $prestation = Prestation::findOrFail($prestationId);
-            $user = Auth::user();
-
-            //Checking if prestation owned by craftsman or client
-            if($prestation->client_id === $user->client?->id || $prestation->craftsman_id === $user->craftsman?->id){
-                return response()->json($prestation, 200);
-            }else{
-                return response()->json(["message" => "Accès refusé : vous ne pouvez pas consulter cette prestation.", 403]);
-            }
-
-        } catch (ModelNotFoundException $e) {
-            // Throw this if craftsman id doesn't exist
-            return response()->json([
-                'message' => 'Prestation non trouvée.',
-            ], 404);
-        } catch (\Exception $e) {
-            //Throw internal server error
-            return response()->json([
-                "message" => "Une erreur s'est produite lors de la demande de la prestation."
+                "message" => "Une erreur s'est produite lors de la demande de la prestation.",
             ], 500);
         }
     }
@@ -83,9 +136,9 @@ class PrestationController extends Controller
     {
         try {
             $prestation = Prestation::findOrFail($prestationId);
-            $craftsman = Auth::user()->craftsman;
+            $craftsman = $req->user()->craftsman;
             
-            // Client can edit if it's still pending and if the prestation belongs to them
+            // Craftsman can edit if it's still await-craftsman and if the prestation belongs to him
             if($prestation->craftsman_id === $craftsman->id && $prestation->state === OrderStatus::AWAITCRAFTSMAN ){
                 $req->validate([
                     "price" => "required|numeric|between:0,99999999.99",
@@ -129,11 +182,11 @@ class PrestationController extends Controller
     }
 
     //Client can accept the quote of the craftsman
-    public function clientAcceptPrestation($prestationId)
+    public function clientAcceptPrestation(Request $req, $prestationId)
     {
         try {
             $prestation = Prestation::findOrFail($prestationId);
-            $client = Auth::user()->client;
+            $client = $req->user()->client;
 
             // Client accepting if the status is await-client and if the prestation belongs to him
             if($prestation->client_id === $client->id && $prestation->state === OrderStatus::AWAITCLIENT ){
@@ -149,11 +202,6 @@ class PrestationController extends Controller
             return response()->json([
                 'message' => 'Prestation non trouvée.',
             ], 404);
-        } catch (ValidationException $e) {
-
-            return response()->json([
-                "errors" => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
@@ -162,13 +210,13 @@ class PrestationController extends Controller
         }
     }
 
-    public function craftsmanCompletePrestation($prestationId)
+    public function craftsmanCompletePrestation(Request $req, $prestationId)
     {
         try {
             $prestation = Prestation::findOrFail($prestationId);
-            $craftsman = Auth::user()->craftsman;
+            $craftsman = $req->user()->craftsman;
 
-            // Client accepting if the status is await-client and if the prestation belongs to him
+            // Craftsman close this prestation if the status is confirmed and if the prestation belongs to him
             if($prestation->craftsman_id === $craftsman->id && $prestation->state === OrderStatus::CONFIRMED ){
                 $prestation->update([
                     "state" => OrderStatus::COMPLETED
@@ -198,14 +246,13 @@ class PrestationController extends Controller
         }
     }
 
-
-    public function craftsmanRefusePrestation($prestationId)
+    public function craftsmanRefusePrestation(Request $req, $prestationId)
     {
         try {
             $prestation = Prestation::findOrFail($prestationId);
-            $craftsman = Auth::user()->craftsman;
+            $craftsman = $req->user()->craftsman;
 
-            // Client accepting if the status is await-client and if the prestation belongs to him
+            // Craftsman can refuse if prestation is await-craftsman and if the prestation belongs to him
             if($prestation->craftsman_id === $craftsman->id && $prestation->state === OrderStatus::AWAITCRAFTSMAN){
                 $prestation->update([
                     "state" => OrderStatus::REFUSEDBYCRAFTSMAN
@@ -219,11 +266,6 @@ class PrestationController extends Controller
             return response()->json([
                 'message' => 'Prestation non trouvée.',
             ], 404);
-        } catch (ValidationException $e) {
-
-            return response()->json([
-                "errors" => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
@@ -232,11 +274,11 @@ class PrestationController extends Controller
         }
     }
 
-    public function clientRefusePrestation($prestationId)
+    public function clientRefusePrestation(Request $req, $prestationId)
     {
         try {
             $prestation = Prestation::findOrFail($prestationId);
-            $client = Auth::user()->client;
+            $client = $req->user()->client;
 
             // Client accepting if the status is await-client and if the prestation belongs to him
             if($prestation->client_id === $client->id && $prestation->state === OrderStatus::AWAITCLIENT ){
@@ -272,7 +314,12 @@ class PrestationController extends Controller
         'price.numeric' => 'Le prix doit être un nombre.',
         'price.between' => 'Le prix doit être compris entre 0 et 99 999 999,99.',
     
+        'title.required' => 'Veuillez renseigner le titre de la demande.',
+        'title.string' => 'Le titre doit être une chaîne de caractères.',
+        'title.max' => 'Le titre ne peut pas dépasser 255 caractères.',
+
         'description.string' => 'La description doit être une chaîne de caractères.',
+        'description.required' => 'Veuillez formuler votre demande.',
         'description.max' => 'La description ne doit pas dépasser 65 535 caractères.',
     
         'date.required' => 'La date est requise.',

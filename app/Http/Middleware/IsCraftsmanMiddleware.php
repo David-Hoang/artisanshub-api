@@ -17,7 +17,7 @@ class IsCraftsmanMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         try {
-            $user = Auth::user();
+            $user = $request->user();
             if(!$user || $user->role->value !== 'craftsman'){
                 return response()->json([
                     'message' => "Accès refusé, vous n'avez pas le rôle nécessaire.",

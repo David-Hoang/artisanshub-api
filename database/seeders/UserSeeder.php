@@ -26,11 +26,21 @@ class UserSeeder extends Seeder
                 ])
                 ->create();
 
-            $user->client()->create(Client::factory()->make()->toArray());
+            // Create client with only 3 columns wihtout accessor in client model
+            $user->client()->create(
+                Client::factory()
+                ->make()
+                ->only([
+                    'street_name', 
+                    'street_number', 
+                    'complement'
+                ])
+            );
         }
 
-        // create 3 craftsmen
-        for ($i = 0; $i < 3; $i++){
+        // create 40 craftsmen
+        $nbCraftsman = 40;
+        for ($i = 0; $i < $nbCraftsman; $i++){
             $user = User::factory()
                 ->craftsman()
                 ->state([

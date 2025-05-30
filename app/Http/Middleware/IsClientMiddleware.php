@@ -17,13 +17,12 @@ class IsClientMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         try {
-            $user = Auth::user();
+            $user = $request->user();
             if(!$user || $user->role->value !== 'client'){
                 return response()->json([
                     'message' => "Accès refusé, vous n'avez pas le rôle nécessaire.",
                 ], 403);
             }
-            
             return $next($request);
 
         } catch (\Throwable $th) {

@@ -47,6 +47,9 @@ Route::middleware('auth:sanctum')->group(function() {
     //craftsman and client can get details of a prestation
     Route::get('prestation/{prestation}', [PrestationController::class, 'showPrestation']);
 
+    // get list prestation
+    Route::get('/prestations', [PrestationController::class, 'listPrestations']);
+
     Route::prefix('message')->group(function() {
         //Send message
         Route::post('/send/{receiverId}', [MessageController::class, 'sendMessage']);

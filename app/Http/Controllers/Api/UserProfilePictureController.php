@@ -16,7 +16,7 @@ class UserProfilePictureController extends Controller
     public function profilePicture(Request $req)
     {
         try {
-            $user = Auth::user();
+            $user = $req->user();
 
             $req->validate([
                 "profile_picture" => "nullable|image|max:3072|mimes:jpg,png,jpeg,webp",
