@@ -69,6 +69,29 @@ class MessageController extends Controller
         }
     }
 
+    // get list of last message with an user
+    public function conversationWith(Request $req, int $userWithId)
+    {
+        try{
+            
+            $user = $req->user();
+            $userWith = User::findOrFail($userWithId);
+
+            return response()->json($user->conversationWith($userWith->id), 200);
+
+        } catch (ModelNotFoundException $e) {
+            // Throw this if receiver id doesn't exist
+            return response()->json([
+                'message' => "Utilisateur introuvable.",
+            ], 404);
+        } catch (\Exception $e) {
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération de la conversation."
+            ], 500);
+        }
+    }
+
     protected function messages(): array
     {
         return [

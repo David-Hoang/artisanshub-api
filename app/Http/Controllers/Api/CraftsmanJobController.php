@@ -17,7 +17,7 @@ class CraftsmanJobController extends Controller
         try {
             return response()->json([
                 "jobs" => CraftsmanJob::all()
-            ]);
+            ], 200);
         } catch (\Exception $e) {
 
             //Throw internal server error
