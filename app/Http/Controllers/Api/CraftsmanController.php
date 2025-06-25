@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Region;
 use App\Models\Craftsman;
+use App\Models\CraftsmanJob;
 use Illuminate\Http\Request;
 use App\Models\CraftsmanGallery;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CraftsmanController extends Controller
 {
@@ -63,6 +65,69 @@ class CraftsmanController extends Controller
             //Throw internal server error
             return response()->json([
                 "message" => "Une erreur s'est produite lors de l'enregistrement des informations."
+            ], 500);
+        }
+    }
+
+    public function listCraftsmen(Request $req)
+    {   
+        try {
+            $region = $req->region;
+            $catId = (int)$req->catId;
+            
+            if(!$catId && !$region){
+                return response()->json(
+                    Craftsman::where('available', true)
+                    ->select('id', 'craftsman_job_id' ,'price', 'user_id')
+                    ->with('job:id,name', 'user:id,first_name,last_name,region,created_at', 'user.profileImg:user_id,img_path,img_title')
+                    ->get(),
+                    200);
+            }
+
+
+
+            // dd($region, $catId);
+            // $listCraftmen = match (expression) {
+            //      => ,
+            //      => ,
+            // }
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des données de la liste des artisans."
+            ], 500);
+        }
+    }
+
+    public function showCraftsmanPublic(int $craftsmanId)
+    {
+        try {
+            $craftsmanPublic = Craftsman::with([
+                'job:id,name', 
+                'user:id,first_name,last_name,zipcode,region,city,created_at', 
+                'user.profileImg:user_id,img_path,img_title'])->findOrFail($craftsmanId);
+
+            return response()->json($craftsmanPublic, 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des données de l'artisan."
+            ], 500);
+        }
+    }
+
+    public function showCraftsmanPrivate(int $craftsmanId)
+    {
+        try {
+            $craftsmanPrivate = Craftsman::with([
+                                'job:id,name',
+                                'user:id,first_name,last_name,zipcode,region,city,email,phone,created_at',
+                                'user.profileImg:user_id,img_path,img_title'])->findOrFail($craftsmanId);
+
+            return response()->json($craftsmanPrivate, 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des données de l'artisan."
             ], 500);
         }
     }

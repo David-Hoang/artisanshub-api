@@ -22,20 +22,16 @@ class PrestationController extends Controller
 
             if ($user->role === Role::CLIENT) {
 
-                $client = $user->client()->with([
-                    'prestations.craftsman:id,user_id',
-                    'prestations.craftsman.user:id,first_name,last_name'
-                ])->first();
-                $prestations = $client->prestations;
+                $prestations = $user->client->prestations()
+                    ->select('id','title', 'state', 'created_at', 'craftsman_id' )
+                    ->with('craftsman:id,user_id', 'craftsman.user:id,first_name,last_name')
+                    ->get();
 
             } else if ($user->role === Role::CRAFTSMAN) {
-
-                $craftsman = $user->craftsman()->with([
-                    'prestations.client:id,user_id',
-                    'prestations.client.user:id,first_name,last_name'
-                ])->first();
-                $prestations = $craftsman->prestations;
-                
+                $prestations = $user->craftsman->prestations()
+                ->select('id','title', 'state', 'created_at', 'client_id' )
+                ->with('client:id,user_id', 'client.user:id,first_name,last_name')
+                ->get();
             }
 
             return response()->json($prestations, 200);

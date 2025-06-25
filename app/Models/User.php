@@ -5,11 +5,12 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Role;
 use App\Enums\Region;
+use App\Models\Message;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -102,6 +103,7 @@ class User extends Authenticatable
     // Get all users the current user has conversations with
     public function conversations()
     {
+
         // Get the IDs of users this user has sent messages to
         $sentTo = $this->sentMessages->pluck('receiver_id')->unique();
 
@@ -114,8 +116,46 @@ class User extends Authenticatable
         // Retrieve all users who have exchanged at least one message with the current user in a single query
         $uniqueUsersInfos = User::whereIn('id', $uniqueUsers)
         ->select('id', 'first_name', 'last_name', 'email')
-        ->get();
+        ->with([
+            'craftsman:id,user_id,craftsman_job_id',
+            'craftsman.job:id,name',
+            'craftsman.user:id',
+            'profileImg:user_id,img_path,img_title'
+            ])->get();
 
+        $uniqueUsersInfos = $uniqueUsersInfos->map(function($user) {
+
+            // get all messages sent to $user
+            $userSent = $this->sentMessages->where('receiver_id', $user->id);
+            
+            //get all message from $user
+            $userReceived = $this->receivedMessages->where('sender_id', $user->id);
+            
+            //combine to get whole message from sender and receiver 
+            $allMessages = $userSent->merge($userReceived);
+
+            // get the last message for sender and receiver
+            $latestMessage = $allMessages
+                        ->sortByDesc('created_at')
+                        ->first();
+            
+            $user->last_message = $latestMessage->only(['id', 'content', 'created_at', 'receiver_id', 'sender_id']);
+
+            return $user;
+        });
         return $uniqueUsersInfos;
+    }
+
+    public function conversationWith($userWithId)
+    {
+            // get all messages sent to $userWithId
+            $userSent = $this->sentMessages()->where('receiver_id', $userWithId)->get();
+
+            //get all message from $userWithId
+            $userReceived = $this->receivedMessages()->where('sender_id', $userWithId)->get();
+
+            $fullConversation = $userSent->merge($userReceived)->sortBy('created_at')->values();
+
+            return $fullConversation;
     }
 }

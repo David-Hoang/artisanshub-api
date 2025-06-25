@@ -33,6 +33,9 @@ Route::get('/jobs/{id}', [CraftsmanJobController::class, 'singleJob']);
 Route::post('/jobs/new-job', [CraftsmanJobController::class, 'addJob']);
 Route::put('/job/{craftsmanJobId}/update', [CraftsmanJobController::class, 'updateJob']);
 
+Route::get('/craftsmen',  [CraftsmanController::class, 'listCraftsmen']);
+Route::get('/craftsman/public/{craftsmanId}', [CraftsmanController::class, 'showCraftsmanPublic']);
+
 Route::middleware('auth:sanctum')->group(function() {
 
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -44,18 +47,24 @@ Route::middleware('auth:sanctum')->group(function() {
     //Upload user profile picture
     Route::post('/user-profile-picture', [UserProfilePictureController::class, 'profilePicture']);
 
+    // ------- Prestations -----------
     //craftsman and client can get details of a prestation
     Route::get('prestation/{prestation}', [PrestationController::class, 'showPrestation']);
-
     // get list prestation
     Route::get('/prestations', [PrestationController::class, 'listPrestations']);
+
+
+    Route::get('/craftsman/private/{craftsmanId}', [CraftsmanController::class, 'showCraftsmanPrivate']);
+
 
     Route::prefix('message')->group(function() {
         //Send message
         Route::post('/send/{receiverId}', [MessageController::class, 'sendMessage']);
-    
         //Get list conversation
         Route::get('/all-conversations', [MessageController::class, 'allConversations']);
+        //Get conversation with an user
+        Route::get('/conversation/{userWithId}', [MessageController::class, 'conversationWith']);
+
     });
 
     Route::middleware('isCraftsman')->group(function() {
