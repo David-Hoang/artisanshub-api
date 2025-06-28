@@ -70,6 +70,9 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::middleware('isCraftsman')->group(function() {
         //Craftsman infos
         Route::post('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
+
+        Route::delete('/photo-gallery/{photoId}', [CraftsmanController::class, 'deletePhotoGallery']);
+
         Route::prefix('prestation')->group(function() {
             Route::patch('/{prestationId}/quote', [PrestationController::class, 'craftsmanQuotePrestation']);
             Route::patch('/{prestationId}/craftsman-refuse', [PrestationController::class, 'craftsmanRefusePrestation']);

@@ -8,8 +8,11 @@ use App\Models\CraftsmanJob;
 use Illuminate\Http\Request;
 use App\Models\CraftsmanGallery;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 
 class CraftsmanController extends Controller
 {
@@ -18,7 +21,6 @@ class CraftsmanController extends Controller
     {
         try {
             $user = $req->user();
-
             $req->validate([
                 "price" => "nullable|numeric|between:0,99999999.99",
                 "description" => "nullable|string|max:65535",
@@ -102,12 +104,17 @@ class CraftsmanController extends Controller
     {
         try {
             $craftsmanPublic = Craftsman::with([
+                'gallery:id,craftsman_id,img_path',
                 'job:id,name', 
                 'user:id,first_name,last_name,zipcode,region,city,created_at', 
                 'user.profileImg:user_id,img_path,img_title'])->findOrFail($craftsmanId);
 
             return response()->json($craftsmanPublic, 200);
-
+            
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                "message" => "Artisan inconnu."
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 "message" => "Une erreur s'est produite lors de la récupération des données de l'artisan."
@@ -119,16 +126,48 @@ class CraftsmanController extends Controller
     {
         try {
             $craftsmanPrivate = Craftsman::with([
+                                'gallery:id,craftsman_id,img_path',
                                 'job:id,name',
                                 'user:id,first_name,last_name,zipcode,region,city,email,phone,created_at',
                                 'user.profileImg:user_id,img_path,img_title'])->findOrFail($craftsmanId);
 
             return response()->json($craftsmanPrivate, 200);
 
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                "message" => "Artisan inconnu."
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 "message" => "Une erreur s'est produite lors de la récupération des données de l'artisan."
             ], 500);
+        }
+    }
+
+    public function deletePhotoGallery(int $photoId)
+    {
+        $user = Auth::user();
+        try {
+            $photoToDelete = $user->craftsman->gallery()->findOrFail($photoId);
+            $imgPath = $photoToDelete->img_path;
+
+            $photoToDelete->delete();
+            Storage::disk('public')->delete($imgPath);
+
+            return response()->json(["message" => "Votre photo a bien été supprimé."], 200);
+
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                "message" => "Photo non trouvée ou non autorisée."
+            ], 404);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                "message" => "Une erreur est survenu lors de la supression de la photo."
+            ], 404);
+
         }
     }
 
