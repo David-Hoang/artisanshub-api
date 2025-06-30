@@ -71,7 +71,11 @@ Route::middleware('auth:sanctum')->group(function() {
         //Craftsman infos
         Route::post('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
 
+        // Delete gallery
         Route::delete('/photo-gallery/{photoId}', [CraftsmanController::class, 'deletePhotoGallery']);
+
+        // Set cover image
+        Route::patch('/cover/{photoId}', [CraftsmanController::class, 'setCover']);
 
         Route::prefix('prestation')->group(function() {
             Route::patch('/{prestationId}/quote', [PrestationController::class, 'craftsmanQuotePrestation']);

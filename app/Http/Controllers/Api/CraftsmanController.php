@@ -57,6 +57,10 @@ class CraftsmanController extends Controller
                 ],
                 $craftsman->wasRecentlyCreated ? 201 : 200 //throw 201 code if new craftsman else 200
             );
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                "message" => "Artisan inconnu."
+            ], 404);
         } catch (ValidationException $e) {
 
             return response()->json([
@@ -80,7 +84,7 @@ class CraftsmanController extends Controller
             if(!$catId && !$region){
                 return response()->json(
                     Craftsman::where('available', true)
-                    ->select('id', 'craftsman_job_id' ,'price', 'user_id')
+                    ->select('id', 'craftsman_job_id' ,'price', 'cover', 'user_id')
                     ->with('job:id,name', 'user:id,first_name,last_name,region,created_at', 'user.profileImg:user_id,img_path,img_title')
                     ->get(),
                     200);
@@ -144,17 +148,27 @@ class CraftsmanController extends Controller
         }
     }
 
-    public function deletePhotoGallery(int $photoId)
+    public function deletePhotoGallery(Request $req, int $photoId)
     {
-        $user = Auth::user();
+        $user = $req->user();
         try {
             $photoToDelete = $user->craftsman->gallery()->findOrFail($photoId);
             $imgPath = $photoToDelete->img_path;
 
+            $craftsman = $user->craftsman;
+            $craftsmanCoverImg = $craftsman->cover;
+            
+            // deleting the cover as well if the deleted photo is the same
+            if($craftsmanCoverImg === $imgPath) {
+                $craftsman->cover = null;
+                $craftsman->save();
+            }
+
             $photoToDelete->delete();
+            
             Storage::disk('public')->delete($imgPath);
 
-            return response()->json(["message" => "Votre photo a bien été supprimé."], 200);
+            return response()->json(["message" => "Votre photo a été supprimé avec succès."], 200);
 
         } catch (ModelNotFoundException $e) {
 
@@ -166,8 +180,37 @@ class CraftsmanController extends Controller
 
             return response()->json([
                 "message" => "Une erreur est survenu lors de la supression de la photo."
-            ], 404);
+            ], 500);
 
+        }
+    }
+
+    public function setCover(Request $req, int $photoId) 
+    {
+        $craftsman = $req->user()->craftsman;
+        $craftsmanGallery = $craftsman->gallery;
+
+        $photo = $craftsmanGallery->find($photoId);
+
+        if(!$photo){
+            return response()->json([
+                "message" => "Photo non trouvée dans votre galerie."
+            ], 404);
+        }
+
+        try {
+            $newCoverPath = $photo->img_path;
+            $craftsman->cover = $newCoverPath;
+
+            $craftsman->save();
+
+            return response()->json(["message" => "Votre photo de couveture a été mise à jour avec succès !"], 200);
+        }  catch (\Exception $e) {
+
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la mise à jour de votre photo de couverture."
+            ], 500);
         }
     }
 

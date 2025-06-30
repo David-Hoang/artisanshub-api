@@ -21,6 +21,7 @@ class Craftsman extends Model
         'price',
         'available',
         'description',
+        'cover'
     ];
 
     /**
