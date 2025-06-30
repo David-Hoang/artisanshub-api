@@ -41,6 +41,7 @@ class ClientController extends Controller
             return response()->json([
                 "errors" => $e->errors()
             ], 422);
+            
         } catch (\Exception $e) {
 
             //Throw internal server error

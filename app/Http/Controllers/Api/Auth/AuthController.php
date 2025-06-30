@@ -144,7 +144,7 @@ class AuthController extends Controller
             if($user->role === Role::CLIENT){
                 return response()->json($user->load(['client', 'profileImg']), 200);
             }else if($user->role === Role::CRAFTSMAN){
-                return response()->json($user->load(['craftsman', 'profileImg', 'craftsman.gallery']), 200);
+                return response()->json($user->load(['craftsman', 'profileImg', 'craftsman.gallery:id,craftsman_id,img_path']), 200);
             }
             
         } catch (\Exception $e) {
