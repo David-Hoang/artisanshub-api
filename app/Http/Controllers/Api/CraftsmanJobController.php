@@ -11,8 +11,24 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CraftsmanJobController extends Controller
 {
-    // Show all jobs
+    // Show all jobs for public
     public function jobs()
+    {
+        try {
+            return response()->json([
+                "jobs" => CraftsmanJob::all()->select('id', 'name', 'img_path', 'img_title', 'description')
+            ], 200);
+        } catch (\Exception $e) {
+
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des métiers."
+            ], 500);
+        }
+    }
+
+    // Show all jobs for admin
+    public function adminJobs()
     {
         try {
             return response()->json([

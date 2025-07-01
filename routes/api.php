@@ -27,13 +27,9 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/enums/regions', [EnumController::class, 'regions']);
 
-//Jobs categories
 Route::get('/jobs', [CraftsmanJobController::class, 'jobs']);
-Route::get('/jobs/{id}', [CraftsmanJobController::class, 'singleJob']);
-Route::post('/jobs/new-job', [CraftsmanJobController::class, 'addJob']);
-Route::put('/job/{craftsmanJobId}/update', [CraftsmanJobController::class, 'updateJob']);
 
-Route::get('/craftsmen',  [CraftsmanController::class, 'listCraftsmen']);
+Route::get('/craftsmen', [CraftsmanController::class, 'listCraftsmen']);
 Route::get('/craftsman/public/{craftsmanId}', [CraftsmanController::class, 'showCraftsmanPublic']);
 
 Route::middleware('auth:sanctum')->group(function() {
@@ -67,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function() {
 
     });
 
+    // ------- Craftsman -----------
     Route::middleware('isCraftsman')->group(function() {
         //Craftsman infos
         Route::post('/craftsman-infos', [CraftsmanController::class, 'craftsmanInfos']);
@@ -84,6 +81,7 @@ Route::middleware('auth:sanctum')->group(function() {
         });
     });
 
+    // ------- Client -----------
     Route::middleware('isClient')->group(function() {
         //Client infos
         Route::post('/client-infos', [ClientController::class, 'clientInfos']);
@@ -93,6 +91,14 @@ Route::middleware('auth:sanctum')->group(function() {
             Route::patch('/{prestationId}/accept', [PrestationController::class, 'clientAcceptPrestation']);
             Route::patch('/{prestationId}/client-refuse', [PrestationController::class, 'clientRefusePrestation']);
         });
+    });
+
+    Route::middleware('isAdmin')->prefix('admin')->group(function() {
+        //Jobs categories
+        Route::get('/jobs', [CraftsmanJobController::class, 'adminJobs']);
+        Route::get('/jobs/{id}', [CraftsmanJobController::class, 'singleJob']);
+        Route::post('/jobs/new-job', [CraftsmanJobController::class, 'addJob']);
+        Route::put('/job/{craftsmanJobId}/update', [CraftsmanJobController::class, 'updateJob']);
     });
 
 });
