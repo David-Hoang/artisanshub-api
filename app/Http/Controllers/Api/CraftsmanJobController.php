@@ -47,13 +47,22 @@ class CraftsmanJobController extends Controller
     public function singleJob($id) 
     {
         try {
+
             return response()->json(CraftsmanJob::findOrFail($id));
+
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                "message" => "Métier inconnu."
+            ], 404);
+
         } catch (\Exception $e) {
 
             //Throw internal server error
             return response()->json([
                 "message" => "Une erreur s'est produite lors de la récupération du métier."
             ], 500);
+
         }
     }
 
@@ -100,39 +109,45 @@ class CraftsmanJobController extends Controller
 
     // Update craftsman job
     public function updateJob(Request $req, $craftsmanJobId)
-    {   
-
+    {
         try {
             $jobCategory = CraftsmanJob::findOrFail($craftsmanJobId);
             $req->validate([
-                "name" => "required|string|max:255|unique:craftsman_jobs,name,". $jobCategory->id,
+                "name" => "required|string|max:255|unique:craftsman_jobs,name," . $jobCategory->id,
                 "img_title" => "nullable|string|max:255",
                 "image" => "nullable|image|max:3072|mimes:jpg,png,jpeg,webp",
                 "description" => "nullable|string|max:5000"
             ], $this->messages());
-            
-            $jobCategory->update([
-                "name" => $req->name,
-                "img_title" => $req->img_title ?? null,
-                "description" => $req->description ?? null
-            ]);
-            
-            if($req->hasFile('image')) {
-                if($jobCategory->img_path && Storage::disk('public')->exists($jobCategory->img_path)) {
-                    Storage::disk('public')->delete($jobCategory->img_path);
+
+            $oldPath = $jobCategory->img_path ?? null;
+
+            $updateData = [
+                "name"        => $req->name,
+                "img_title"   => $req->img_title ?? null,
+                "description" => $req->description ?? null,
+            ];
+
+            if ($req->hasFile('image')) {
+                if($oldPath) {
+                    Storage::disk('public')->delete($oldPath);
                 }
+                
                 $path = $req->image->store('/img/jobs', 'public');
-                $jobCategory->img_path = $path;
-                $jobCategory->save();
-            }elseif (!$req->image) {
-                Storage::disk('public')->delete($jobCategory->img_path);
-                $jobCategory->img_path = null;
-                $jobCategory->save();
+                $updateData['img_path'] = $path;
             }
+
+            if (!$req->hasFile('image') && $req->remove_img) {
+                if ($oldPath) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+                $updateData['img_path'] = null;
+            }
+
+            $jobCategory->update($updateData);
 
             return response()->json([
                 "message" => "Les informations du métier ont bien été mises à jour.",
-            ], 201);
+            ], 200);
         } catch (ModelNotFoundException $e) {
             // Throw this if craftsman job's id don't exist
             return response()->json([
@@ -147,8 +162,39 @@ class CraftsmanJobController extends Controller
 
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur est survenue lors de la mise à jour du métier.",
+                "message" => "Une erreur est survenue lors de la mise à jour du métier.", 'a' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    // Delete craftsman job
+
+    public function deleteJob($craftsmanJobId) {
+
+        try {
+            $jobCategory = CraftsmanJob::findOrFail($craftsmanJobId);
+            $imgPath = $jobCategory->img_path;
+
+            if($imgPath) {
+                Storage::disk('public')->delete($imgPath);
+            }
+
+            $jobCategory->delete();
+
+            return response()->json(["message" => "Le métier a été supprimer avec succès !"], 200);
+
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                "message" => "Métier non trouvée ou non autorisée."
+            ], 404);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                "message" => "Une erreur est survenu lors de la supression du métier."
+            ], 500);
+
         }
     }
 

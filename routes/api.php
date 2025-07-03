@@ -1,7 +1,5 @@
 <?php
 
-use App\Enums\Role;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\MessageController;
@@ -12,16 +10,7 @@ use App\Http\Controllers\Api\PrestationController;
 use App\Http\Controllers\Api\CraftsmanJobController;
 use App\Http\Controllers\Api\UserProfilePictureController;
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
-
-// Route::get('/hello', function() {
-//     dd(Role::CRAFTSMAN);
-//     // return Role::CRAFTSMAN;
-// });
-
-
+// ------- Public -----------
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -52,7 +41,7 @@ Route::middleware('auth:sanctum')->group(function() {
 
     Route::get('/craftsman/private/{craftsmanId}', [CraftsmanController::class, 'showCraftsmanPrivate']);
 
-
+    // ------- Messages -----------
     Route::prefix('message')->group(function() {
         //Send message
         Route::post('/send/{receiverId}', [MessageController::class, 'sendMessage']);
@@ -60,7 +49,6 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::get('/all-conversations', [MessageController::class, 'allConversations']);
         //Get conversation with an user
         Route::get('/conversation/{userWithId}', [MessageController::class, 'conversationWith']);
-
     });
 
     // ------- Craftsman -----------
@@ -93,12 +81,14 @@ Route::middleware('auth:sanctum')->group(function() {
         });
     });
 
+    // ------- Admin -----------
     Route::middleware('isAdmin')->prefix('admin')->group(function() {
         //Jobs categories
         Route::get('/jobs', [CraftsmanJobController::class, 'adminJobs']);
         Route::get('/jobs/{id}', [CraftsmanJobController::class, 'singleJob']);
         Route::post('/jobs/new-job', [CraftsmanJobController::class, 'addJob']);
-        Route::put('/job/{craftsmanJobId}/update', [CraftsmanJobController::class, 'updateJob']);
+        Route::patch('/job/{craftsmanJobId}/update', [CraftsmanJobController::class, 'updateJob']);
+        Route::delete('/job/{craftsmanJobId}', [CraftsmanJobController::class, 'deleteJob']);
     });
 
 });
