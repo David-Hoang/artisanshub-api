@@ -24,7 +24,6 @@ Route::get('/craftsman/public/{craftsmanId}', [CraftsmanController::class, 'show
 Route::middleware('auth:sanctum')->group(function() {
 
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/all-users', [AuthController::class, 'allUsers']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me/update', [AuthController::class, 'updateUserInfos']);
     Route::patch('/me/update-password', [AuthController::class, 'updateUserPassword']);
@@ -89,6 +88,11 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::post('/jobs/new-job', [CraftsmanJobController::class, 'addJob']);
         Route::patch('/job/{craftsmanJobId}/update', [CraftsmanJobController::class, 'updateJob']);
         Route::delete('/job/{craftsmanJobId}', [CraftsmanJobController::class, 'deleteJob']);
+
+        // Users
+        Route::get('/all-users', [AuthController::class, 'allUsers']);
+        Route::get('/user/{userId}', [AuthController::class, 'singleUser']);
+        Route::delete('/user/{userId}', [AuthController::class, 'deleteUser']);
     });
 
 });
