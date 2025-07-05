@@ -248,13 +248,12 @@ class AuthController extends Controller
         try {
             $user = User::findOrFail($userId);
 
-            if ($user->role === Role::CLIENT) {
-                $user->load('client', 'profileImg');
-            } else if ($user->role === Role::CRAFTSMAN) {
-                $user->load('craftsman', 'profileImg');
-            }
+            $userDatas = match ($user->role) {
+                Role::CLIENT => $user->load('client', 'profileImg'),
+                Role::CRAFTSMAN => $user->load('craftsman.job:id,name', 'profileImg'),
+            };
 
-            return response()->json($user, 200);
+            return response()->json($userDatas, 200);
         } catch (ModelNotFoundException $e) {
 
             return response()->json([
@@ -270,6 +269,7 @@ class AuthController extends Controller
 
     public function deleteUser(int $userId)
     {
+
         try {
             $user = User::findOrFail($userId);
             

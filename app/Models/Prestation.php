@@ -41,4 +41,12 @@ class Prestation extends Model
     {
         return $this->belongsTo(Client::class, 'client_id');
     }
+
+    public function parties()
+    {
+        return [
+            'client' => $this->client,
+            'craftsman' => $this->craftsman,
+        ];
+    }
 }

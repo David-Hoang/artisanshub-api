@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function() {
     // ------- Prestations -----------
     //craftsman and client can get details of a prestation
     Route::get('prestation/{prestation}', [PrestationController::class, 'showPrestation']);
+
     // get list prestation
     Route::get('/prestations', [PrestationController::class, 'listPrestations']);
 
@@ -93,6 +94,11 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::get('/all-users', [AuthController::class, 'allUsers']);
         Route::get('/user/{userId}', [AuthController::class, 'singleUser']);
         Route::delete('/user/{userId}', [AuthController::class, 'deleteUser']);
+
+        // Prestations
+        Route::get('/prestations', [PrestationController::class, 'listPrestations']);
+        Route::get('/prestation/{prestationId}', [PrestationController::class, 'showPrestation']);
+        Route::delete('/prestation/{prestationId}', [PrestationController::class, 'deletePrestation']);
     });
 
 });
