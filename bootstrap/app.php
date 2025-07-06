@@ -14,7 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         // Force laravel api to always render a json response
-        // $middleware->append(\App\Http\Middleware\ReturnJsonResponseMiddleware::class);
+        $middleware->append(\App\Http\Middleware\ReturnJsonResponseMiddleware::class);
+
+        $middleware->alias([
+            'isCraftsman' => \App\Http\Middleware\IsCraftsmanMiddleware::class,
+            'isClient' => \App\Http\Middleware\IsClientMiddleware::class,
+            'isAdmin' => \App\Http\Middleware\IsAdminMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Force laravel api to always render a json response

@@ -17,8 +17,7 @@ class EnumController extends Controller
 
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de l'inscription.",
-                "error" => $e->getMessage()
+                "message" => "Une erreur s'est produite lors de la récupération des régions."
             ], 500);
         }
     }
