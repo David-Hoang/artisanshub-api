@@ -26,15 +26,18 @@ This backend handles :
 ### Installing
 
 1. Clone the repository
-`git clone https://github.com/David-Hoang/artisanshub-api.git`
-`cd artisanshub-api`
+```
+git clone https://github.com/David-Hoang/artisanshub-api.git
+cd artisanshub-api
+```
 
-2. Install dependencies
-`composer install`
-`npm install`
-
+3. Install dependencies
+```
+composer install
+npm install
+```
 3. Copy `.env.example` and rename to `.env`. 
-Setup the file by matching database connection.
+Configure your database connection in the `.env` file
 
 5. Generate artisan key
 `php artisan key:generate`
@@ -42,11 +45,12 @@ Setup the file by matching database connection.
 6. Execute migration and database seeders
 `php artisan migrate:fresh --seed`
 
-### Executing program (local development
-Once the migration is finish, you can start the server
+### Executing program (local development)
+After setting up, launch the development server :
 `php artisan serve`
 
-The first endpoint you can check is `/api/craftsmen`
+The first endpoint you can check is :
+`/api/craftsmen`
 
 ## Authors
 
