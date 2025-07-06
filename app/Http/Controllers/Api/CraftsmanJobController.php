@@ -32,7 +32,7 @@ class CraftsmanJobController extends Controller
     {
         try {
             return response()->json([
-                "jobs" => CraftsmanJob::all()
+                "jobs" => CraftsmanJob::orderBy('id', 'desc')->get()
             ], 200);
         } catch (\Exception $e) {
 

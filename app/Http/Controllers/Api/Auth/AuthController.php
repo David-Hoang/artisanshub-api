@@ -234,7 +234,7 @@ class AuthController extends Controller
             if (count($users) < 1) {
                 return response()->json(['message' => 'Aucun utilisateur existant'], 404);
             } else {
-                return response()->json(User::whereIn('role', ['craftsman', 'client'])->get(), 200);
+                return response()->json(User::whereIn('role', ['craftsman', 'client'])->orderBy('created_at', 'desc')->get(), 200);
             }
         } catch (\Exception $e) {
             return response()->json([

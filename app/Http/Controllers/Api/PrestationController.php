@@ -7,6 +7,7 @@ use App\Models\Craftsman;
 use App\Enums\OrderStatus;
 use App\Models\Prestation;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -354,6 +355,59 @@ class PrestationController extends Controller
         }
     }
 
+    function updateState(Request $req, int $prestationId)
+    {
+        try {
+            $prestation = Prestation::findOrFail($prestationId);
+
+            $req->validate([
+                "state" => ["required", Rule::in(OrderStatus::cases())],
+            ], $this->messages());
+
+            $prestation->update([
+                "state" => $req->state
+            ]);
+
+            return response()->json(["message" => "La prestation a été mise à jour avec succès !"], 200);
+        } catch (ModelNotFoundException $e) {
+            // Throw this if prestation id doesn't exist
+            return response()->json([
+                'message' => 'Prestation non trouvée.',
+            ], 404);
+        } catch (ValidationException $e) {
+
+            return response()->json([
+                "errors" => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la mise à jour de la prestation."
+            ], 500);
+        }
+    }
+
+    public function statesListPrestation ()
+    {
+        try {
+
+        $statesList = array_map(function($state) {
+                return [
+                    'value' => $state->value,
+                    'label' => $state->displayName()
+                ];
+            }, OrderStatus::cases());
+
+            return response()->json($statesList, 200);
+        } catch (\Exception $e) {
+
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des status."
+            ], 500);
+        }
+    }
+
     protected function messages(): array
     {
         return [
@@ -372,6 +426,9 @@ class PrestationController extends Controller
         'date.required' => 'La date est requise.',
         'date.date' => 'La date doit être une date valide.',
         'date.after' => 'La date doit être ultérieure à l\'heure actuelle.',
+
+        "state.required" => "Veuillez sélectionner un status.",
+        "state.in" => "Veuillez sélectionner un status valide.",
         ];
     }
 }

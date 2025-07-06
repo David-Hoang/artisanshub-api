@@ -2,10 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Region;
+use App\Enums\Role;
 use App\Models\User;
 use App\Models\Client;
 use App\Models\Craftsman;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 
@@ -16,6 +19,19 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+
+        // create admin account
+        User::factory()->create([ 
+            'last_name' => 'admin',
+            'first_name' => 'admin',
+            'email' => 'admin@admin.io',
+            'role' => Role::ADMIN,
+            'password' => Hash::make('Admin!123'),
+            'phone' => '0000000000',
+            'city' => 'Paris',
+            'region' => Region::ILE_DE_FRANCE,
+            'zipcode' => '00000',
+        ]);
 
         // create 3 clients
         for ($i = 0; $i < 3; $i++){

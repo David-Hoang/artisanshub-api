@@ -97,8 +97,10 @@ Route::middleware('auth:sanctum')->group(function() {
 
         // Prestations
         Route::get('/prestations', [PrestationController::class, 'listPrestations']);
+        Route::get('/prestations/states', [PrestationController::class, 'statesListPrestation']);
         Route::get('/prestation/{prestationId}', [PrestationController::class, 'showPrestation']);
         Route::delete('/prestation/{prestationId}', [PrestationController::class, 'deletePrestation']);
+        Route::patch('/prestation/state/{prestationId}', [PrestationController::class, 'updateState']);
     });
 
 });
