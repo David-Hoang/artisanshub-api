@@ -7,16 +7,20 @@ use App\Models\User;
 use App\Enums\Region;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Http\Controllers\Controller;
 use App\Models\UserProfilePicture;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 
 class AuthController extends Controller
 {
-    public function register(Request $req) {
+    public function register(Request $req)
+    {
 
         try {
             $inputsValidated = $req->validate([
@@ -32,7 +36,7 @@ class AuthController extends Controller
                 "region" => ["required", Rule::in(Region::cases())],
                 "zipcode" => "required|regex:/^\d{5}$/"
             ], $this->messages());
-            
+
             // Create new user
             $newUser = User::create($inputsValidated);
 
@@ -47,12 +51,12 @@ class AuthController extends Controller
             $userToken = $newUser->createToken($newUser->id);
 
             // populate infos for client or craftsman
-            if($newUser->role === Role::CLIENT){
+            if ($newUser->role === Role::CLIENT) {
                 $newUser->load(['client', 'profileImg']);
-            }else if($newUser->role === Role::CRAFTSMAN){
+            } else if ($newUser->role === Role::CRAFTSMAN) {
                 $newUser->load(['craftsman', 'profileImg', 'craftsman.gallery']);
             }
-            
+
             return response()->json([
                 "message" => "Utilisateur créé avec succès !",
                 "user" => $newUser,
@@ -71,36 +75,36 @@ class AuthController extends Controller
                 "message" => "Une erreur s'est produite lors de l'inscription."
             ], 500);
         }
-
     }
 
-    public function login(Request $req) {
-        
+    public function login(Request $req)
+    {
+
         try {
             $req->validate([
                 "email" => "required|email",
                 "password" => "required"
             ], $this->messages());
-            
+
             $user = User::where('email', $req->email)->first();
 
-            if (!$user) 
+            if (!$user)
                 return response()->json([
                     "message" => "Les informations de connexion ne sont pas valides."
                 ], 401);
 
-            if(!Hash::check($req->password, $user->password))
+            if (!Hash::check($req->password, $user->password))
                 return response()->json([
                     "message" => "Les informations de connexion ne sont pas valides."
                 ], 401);
-            
+
             // Token generate
             $userToken = $user->createToken($user->id);
-            
+
             // populate infos for client or craftsman
-            if($user->role === Role::CLIENT){
+            if ($user->role === Role::CLIENT) {
                 $user->load(['client', 'profileImg']);
-            }else if($user->role === Role::CRAFTSMAN){
+            } else if ($user->role === Role::CRAFTSMAN) {
                 $user->load(['craftsman', 'profileImg', 'craftsman.gallery']);
             }
 
@@ -109,7 +113,11 @@ class AuthController extends Controller
                 "user" => $user,
                 "token" => $userToken->plainTextToken
             ], 200);
+        } catch (ModelNotFoundException $e) {
 
+            return response()->json([
+                "message" => "Utilisateur inconnu."
+            ], 404);
         } catch (ValidationException $e) {
 
             return response()->json([
@@ -123,36 +131,39 @@ class AuthController extends Controller
             ], 500);
         }
     }
-    
-    public function logout(Request $req) {
+
+    public function logout(Request $req)
+    {
         try {
             $user = $req->user();
-            if(!$user) return response()->json(["message" => "Vous n'êtes pas authentifié."], 401);
+            if (!$user) return response()->json(["message" => "Vous n'êtes pas authentifié."], 401);
 
             $user->tokens()->delete();
             return response()->json(["message" => "Déconnexion réussie."], 200);
-
         } catch (\Exception $e) {
             return response()->json(["message" => "Une erreur s'est produite lors de la tentative de déconnexion."], 500);
         }
     }
 
-    public function me(Request $req) {
+    public function me(Request $req)
+    {
         try {
             $user = $req->user();
 
-            if($user->role === Role::CLIENT){
+            if ($user->role === Role::CLIENT) {
                 return response()->json($user->load(['client', 'profileImg']), 200);
-            }else if($user->role === Role::CRAFTSMAN){
+            } else if ($user->role === Role::CRAFTSMAN) {
                 return response()->json($user->load(['craftsman', 'profileImg', 'craftsman.gallery:id,craftsman_id,img_path']), 200);
+            } else if ($user->role === Role::ADMIN) {
+                return response()->json($user, 200);
             }
-            
         } catch (\Exception $e) {
             return response()->json(["message" => "Une erreur s'est produite lors de la récupération des données."], 500);
         }
     }
 
-    public function updateUserInfos(Request $req) {
+    public function updateUserInfos(Request $req)
+    {
         try {
             $user = $req->user();
             $validation = $req->validate([
@@ -181,8 +192,9 @@ class AuthController extends Controller
         }
     }
 
-    public function updateUserPassword (Request $req) {
-        
+    public function updateUserPassword(Request $req)
+    {
+
         try {
             $user = $req->user();
 
@@ -192,11 +204,11 @@ class AuthController extends Controller
                 "new_password_confirmation" => "required"
             ], $this->messages());
 
-            if(!Hash::check($req->password, $user->password))
+            if (!Hash::check($req->password, $user->password))
                 return response()->json([
                     "message" => "Le mot de passe actuel est incorrect."
                 ], 401);
-            
+
             $user->update([
                 "password" => $req->new_password
             ]);
@@ -215,22 +227,75 @@ class AuthController extends Controller
         }
     }
 
-    public function allUsers () {
+    public function allUsers()
+    {
         try {
             $users = User::all();
-            if(count($users) < 1){
+            if (count($users) < 1) {
                 return response()->json(['message' => 'Aucun utilisateur existant'], 404);
-            }else{
-                return response()->json(User::all(), 200);
+            } else {
+                return response()->json(User::whereIn('role', ['craftsman', 'client'])->orderBy('created_at', 'desc')->get(), 200);
             }
         } catch (\Exception $e) {
             return response()->json([
-                "message" => "Une erreur s'est produite lors de l'inscription."
+                "message" => "Une erreur s'est produite lors de la récupérations des utilisateurs."
             ], 500);
         }
     }
 
-    protected function messages() : array {
+    public function singleUser(int $userId)
+    {
+        try {
+            $user = User::findOrFail($userId);
+
+            $userDatas = match ($user->role) {
+                Role::CLIENT => $user->load('client', 'profileImg'),
+                Role::CRAFTSMAN => $user->load('craftsman.job:id,name', 'profileImg'),
+            };
+
+            return response()->json($userDatas, 200);
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                "message" => "Utilisateur inconnu."
+            ], 404);
+        } catch (\Exception $e) {
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des informations de l'utilisateur"
+            ], 500);
+        }
+    }
+
+    public function deleteUser(int $userId)
+    {
+
+        try {
+            $user = User::findOrFail($userId);
+            
+            if($user->role === Role::CRAFTSMAN){
+                Storage::disk('public')->deleteDirectory("img/gallery/".$user->profile()->id);
+            }
+
+            Storage::disk('public')->deleteDirectory("img/profile/$userId");
+            $user->delete();
+
+            return response()->json(["message" => "L'utilisateur a été supprimer avec succès !"], 200);
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                "message" => "Utilisateur inconnu."
+            ], 404);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                "message" => "Une erreur est survenu lors de la supression de l'utilisateur."
+            ], 500);
+        }
+    }
+
+    protected function messages(): array
+    {
         return [
             // Register
             "first_name.required" => "Veuillez renseigner votre prénom.",
@@ -265,7 +330,7 @@ class AuthController extends Controller
             "new_password.required" => "Veuillez renseigner le nouveau mot de passe.",
             "new_password.confirmed" => "Les mots de passe ne correspondent pas.",
             "new_password.min" => "Le mot de passe doit contenir au moins 8 caractères.",
-            
+
             "new_password_confirmation" => "Veuillez confirmer votre nouveau mot de passe.",
 
             "phone.required" => "Veuillez renseigner votre numéro de téléphone.",

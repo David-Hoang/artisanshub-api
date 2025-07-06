@@ -7,6 +7,7 @@ use App\Models\Craftsman;
 use App\Enums\OrderStatus;
 use App\Models\Prestation;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -20,26 +21,39 @@ class PrestationController extends Controller
         try {
             $user = $req->user();
 
-            if ($user->role === Role::CLIENT) {
-
-                $prestations = $user->client->prestations()
+            $prestations = match ($user->role) {
+                Role::CLIENT => $user->client->prestations()
                     ->select('id','title', 'state', 'created_at', 'craftsman_id' )
                     ->with('craftsman:id,user_id', 'craftsman.user:id,first_name,last_name')
-                    ->get();
-
-            } else if ($user->role === Role::CRAFTSMAN) {
-                $prestations = $user->craftsman->prestations()
-                ->select('id','title', 'state', 'created_at', 'client_id' )
-                ->with('client:id,user_id', 'client.user:id,first_name,last_name')
-                ->get();
-            }
+                    ->get(),
+                Role::CRAFTSMAN => $user->craftsman->prestations()
+                    ->select('id','title', 'state', 'created_at', 'client_id' )
+                    ->with('client:id,user_id', 'client.user:id,first_name,last_name')
+                    ->get(),
+                Role::ADMIN => Prestation::select(
+                                'ordered_prestations.id',
+                                'ordered_prestations.title', 
+                                'ordered_prestations.state', 
+                                'ordered_prestations.created_at',
+                                'client.first_name as client_first_name',
+                                'client.last_name as client_last_name',
+                                'craftsman.first_name as craftsman_first_name',
+                                'craftsman.last_name as craftsman_last_name'
+                            )
+                        ->leftJoin('clients', 'ordered_prestations.client_id', '=', 'clients.id')
+                        ->leftJoin('users as client', 'clients.user_id', '=', 'client.id')
+                        ->leftJoin('craftsmen', 'ordered_prestations.craftsman_id', '=', 'craftsmen.id')
+                        ->leftJoin('users as craftsman', 'craftsmen.user_id', '=', 'craftsman.id')
+                        ->orderBy('id', 'desc')
+                        ->get()
+            };
 
             return response()->json($prestations, 200);
 
         } catch (\Exception $e) {
             //Throw internal server error
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la récupération des prestations.",
+                "message" => "Une erreur s'est produite lors de la récupération des prestations."
             ], 500);
         }
     }
@@ -50,30 +64,46 @@ class PrestationController extends Controller
         try {
             $user = $req->user();
 
-            if ($user->role === Role::CLIENT) {
-                $prestation = $user->client
+            if($user->role === Role::ADMIN){
+                $prestation = Prestation::select(
+                        'ordered_prestations.id', 
+                        'ordered_prestations.title', 
+                        'ordered_prestations.price', 
+                        'ordered_prestations.description', 
+                        'ordered_prestations.date', 
+                        'ordered_prestations.state', 
+                        'client_user.first_name as client_first_name',
+                        'client_user.last_name as client_last_name',
+                        'craftsman_user.first_name as craftsman_first_name', 
+                        'craftsman_user.last_name as craftsman_last_name', 
+                        'ordered_prestations.created_at', 
+                        'ordered_prestations.updated_at')
+                    ->leftJoin('clients', 'ordered_prestations.client_id', '=', 'clients.id')
+                    ->leftJoin('users as client_user', 'clients.user_id', '=', 'client_user.id')
+                    ->leftJoin('craftsmen', 'ordered_prestations.craftsman_id', '=', 'craftsmen.id')
+                    ->leftJoin('users as craftsman_user', 'craftsmen.user_id', '=', 'craftsman_user.id')
+                    ->where('ordered_prestations.id', $prestationId)
+                    ->firstOrFail();
+            } else {
+                $prestation = match ($user->role) {
+                    Role::CLIENT => $user->client
                     ->prestations()
                     ->with([
                         'craftsman.job:id,name',
                         'craftsman.user:id,last_name,first_name,phone,email',
                         'craftsman.user.profileImg:user_id,img_path,img_title'
-                    ])
-                    ->findOrFail($prestationId);
-
-            } else if ($user->role === Role::CRAFTSMAN) {
-                $prestation = $user->craftsman
-                    ->prestations()
-                    ->with([
+                        ])
+                        ->findOrFail($prestationId),
+                        Role::CRAFTSMAN => $user->craftsman
+                        ->prestations()
+                        ->with([
                         'client.user:id,last_name,first_name,phone,email',
                         'client.user.profileImg:user_id,img_path,img_title'
-                    ])
-                    ->findOrFail($prestationId);
-            } else {
-                return response()->json([
-                    "message" => "Vous n'avez pas accès à cette prestation."
-                ], 403);
-            }
-
+                        ])
+                    ->findOrFail($prestationId),
+                };
+            };
+                
             return response()->json($prestation, 200);
 
         } catch (ModelNotFoundException $e) {
@@ -82,7 +112,7 @@ class PrestationController extends Controller
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                "message" => "Une erreur s'est produite lors de la demande de la prestation."
+                "message" => "Une erreur s'est produite lors de la demande de la prestation.", 'e' => $e->getMessage()
             ], 500);
         }
     }    
@@ -303,6 +333,81 @@ class PrestationController extends Controller
         }
     }
 
+    public function deletePrestation(int $prestationId)
+    {
+        try {
+            
+            Prestation::findOrFail($prestationId)->delete();
+            return response()->json(["message" => "La prestation supprimer avec succès !"], 200);
+
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json([
+                "message" => "Prestation inconnu."
+            ], 404);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                "message" => "Une erreur est survenu lors de la supression de la prestation."
+            ], 500);
+
+        }
+    }
+
+    function updateState(Request $req, int $prestationId)
+    {
+        try {
+            $prestation = Prestation::findOrFail($prestationId);
+
+            $req->validate([
+                "state" => ["required", Rule::in(OrderStatus::cases())],
+            ], $this->messages());
+
+            $prestation->update([
+                "state" => $req->state
+            ]);
+
+            return response()->json(["message" => "La prestation a été mise à jour avec succès !"], 200);
+        } catch (ModelNotFoundException $e) {
+            // Throw this if prestation id doesn't exist
+            return response()->json([
+                'message' => 'Prestation non trouvée.',
+            ], 404);
+        } catch (ValidationException $e) {
+
+            return response()->json([
+                "errors" => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la mise à jour de la prestation."
+            ], 500);
+        }
+    }
+
+    public function statesListPrestation ()
+    {
+        try {
+
+        $statesList = array_map(function($state) {
+                return [
+                    'value' => $state->value,
+                    'label' => $state->displayName()
+                ];
+            }, OrderStatus::cases());
+
+            return response()->json($statesList, 200);
+        } catch (\Exception $e) {
+
+            //Throw internal server error
+            return response()->json([
+                "message" => "Une erreur s'est produite lors de la récupération des status."
+            ], 500);
+        }
+    }
+
     protected function messages(): array
     {
         return [
@@ -321,6 +426,9 @@ class PrestationController extends Controller
         'date.required' => 'La date est requise.',
         'date.date' => 'La date doit être une date valide.',
         'date.after' => 'La date doit être ultérieure à l\'heure actuelle.',
+
+        "state.required" => "Veuillez sélectionner un status.",
+        "state.in" => "Veuillez sélectionner un status valide.",
         ];
     }
 }
